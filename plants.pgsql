@@ -4,9 +4,6 @@ CREATE DATABASE plants;
 
 CREATE SCHEMA plants;
 
-IF OBJECT_ID('plants.phyla', 'U') IS NOT NULL
-DROP TABLE plants.phyla
-;
 -- Create the table in the specified schema
 CREATE TABLE plants.phyla
 (
