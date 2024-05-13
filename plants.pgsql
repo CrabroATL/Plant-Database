@@ -2,23 +2,23 @@
 -- Drop the table if it already exists
 CREATE DATABASE plants;
 
-CREATE SCHEMA plants;
+CREATE SCHEMA ar_plants;
 
 -- Create the table in the specified schema
-CREATE TABLE plants.phyla
+CREATE TABLE ar_plants.phyla
 (
-    phyla_id INTEGER UNIQUE NOT NULL PRIMARY KEY, -- primary key column
+    phyla_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     polyphylactic_group VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE plants.family
+CREATE TABLE ar_plants.family
 (
     family_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     family VARCHAR(50) NOT NULL,
     phyla_id INTEGER REFERENCES phyla (phyla_id) 
 );
 
-CREATE TABLE plants.genera
+CREATE TABLE ar_plants.genera
 (
     genera_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     genera VARCHAR(50) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE plants.genera
 );
 
 -- list of all vascular plant species and relevant data
-CREATE TABLE plants.species
+CREATE TABLE ar_plants.species
 (
     species_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     scientific_name VARCHAR(100) NOT NULL,
@@ -42,14 +42,14 @@ CREATE TABLE plants.species
     phyla_id INTEGER REFERENCES phyla (phyla_id)
 );
 
-CREATE TABLE plants.counties
+CREATE TABLE ar_plants.counties
 (
     county_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     county_name VARCHAR(50) NOT NULL
 );
 
 -- table checks for species occurance in a county
-CREATE TABLE plants.county_occurance
+CREATE TABLE ar_plants.county_occurance
 (
     species_id INTEGER REFERENCES species (species_id),
     county_id INTEGER REFERENCES counties (county_id)

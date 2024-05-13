@@ -1,20 +1,15 @@
 import psycopg2
-import traceback
 
 def main():
-    print("working")
+    
 
     # load in the plant database
-    try:
-        conn = psycopg2.connect('dbname=plants user=postgres password=password host=0.0.0.0')
+    
+    print("cool")
+    conn = psycopg2.connect('dbname=plants user=postgres password=password host=host.docker.internal')
+    print("more cool")
 
-    except psycopg2.Error as e:
-        print (e)
-        print (e.pgcode)
-        print (e.pgerror)
-        print (traceback.format_exc())
-        exit(0)
-
+    print("test")
     cur = conn.cursor()
 
     phyla = cur.execute("SELECT * FROM stuff.fruit")
