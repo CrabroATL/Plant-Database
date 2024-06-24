@@ -5,6 +5,9 @@ from skimage.io import imread, imshow
 import skimage as ski
 import psycopg2
 import pytesseract
+from PIL import Image
+
+pytesseract.pytesseract.tesseract_cmd = r'\\wsl.localhost\Ubuntu\home\cperry\.local\lib\python3.10\site-packages\pytesseract'
 
 conn = psycopg2.connect('dbname=postgres user=postgres password=password host=host.docker.internal')
 
@@ -323,13 +326,14 @@ counties = [
     },
 ]
 
-for i in counties:
-    county_occurance = image[i["y"]][i["x"]]
-    if county_occurance < 0.5:
-        print(i["name"])
-        # code to insert county occurance data
+for quadrant in range(5):
+    for county in counties:
+        county_occurance = image[county["y"]][county["x"]]
+        if county_occurance < 0.5:
+            print(county["name"])
+            # code to insert county occurance data
 
-print(pytesseract.image_to_string(image))
+print(pytesseract.image_to_string(Image.open("gymnosperms_1.jpeg")))
 
 imshow(image)
 plt.show()
