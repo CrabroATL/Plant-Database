@@ -12,6 +12,11 @@ CREATE TABLE ar_plants.phyla
     polyphylactic_group VARCHAR(50) NOT NULL
 );
 
+INSERT INTO ar_plants.phyla VALUES
+(
+    'pteridophytes', 'gymnosperms', 'angiosperm dicots', 'angiosperm monocots'
+);
+
 CREATE TABLE ar_plants.family
 (
     family_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
@@ -52,4 +57,83 @@ CREATE TABLE ar_plants.county_occurance
 (
     species_id INTEGER REFERENCES species (species_id),
     county_id INTEGER REFERENCES counties (county_id)
+)
+
+INSERT INTO ar_plants.counties VALUES
+(
+    'arkansas',
+    'ashley',
+    'baxter',
+    'benton',
+    'boone',
+    'bardley',
+    'calhoun',
+    'carroll',
+    'chicot',
+    'clark',
+    'clay',
+    'cleburne',
+    'cleveland',
+    'columbia',
+    'conway',
+    'craighead',
+    'crawford',
+    'crittenden',
+    'cross',
+    'dallas',
+    'desha',
+    'drew',
+    'faulkner',
+    'franklin',
+    'fulton',
+    'garland',
+    'grant',
+    'greene',
+    'hempstead',
+    'hotspring',
+    'howard',
+    'independence',
+    'izard',
+    'jackson',
+    'jefferson',
+    'johnson',
+    'lafayette',
+    'lawrence',
+    'lee',
+    'lincoln',
+    'littleriver',
+    'logan',
+    'lonoke',
+    'madison',
+    'marion',
+    'miller',
+    'mississippi',
+    'monroe',
+    'montgomery',
+    'nevada',
+    'newton',
+    'ouachita',
+    'perry',
+    'phillips',
+    'pike',
+    'poinsett',
+    'polk',
+    'pope',
+    'prairie',
+    'pulaski',
+    'randolph',
+    'saintfrancis',
+    'saline',
+    'scott',
+    'searcy',
+    'sebastian',
+    'sevier',
+    'sharp',
+    'stone',
+    'union',
+    'vanburen',
+    'washington',
+    'white',
+    'woodruff',
+    'yell',
 );

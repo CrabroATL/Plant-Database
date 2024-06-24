@@ -7,8 +7,6 @@ import psycopg2
 import pytesseract
 from PIL import Image
 
-pytesseract.pytesseract.tesseract_cmd = r'\\wsl.localhost\Ubuntu\home\cperry\.local\lib\python3.10\site-packages\pytesseract'
-
 conn = psycopg2.connect('dbname=postgres user=postgres password=password host=host.docker.internal')
 
 cur = conn.cursor()
@@ -17,12 +15,12 @@ plt.switch_backend('TkAgg')
 
 image = imread('gymnosperms_1.jpeg', as_gray = True)
 
-#pixel amounts to transfer between state maps
-x_transfer = 780
-y_middle_transfer = 675
-y_bottom_transfer = 1346
+# pixel amounts to transfer between state maps
+x_transform = 780
+y_middle_transform = 675
+y_bottom_transform = 1346
 
-#y is before x when indexing into the image
+# y is before x when indexing into the image
 counties = [
     {"name": "arkansas",
     "x": 556,
@@ -326,12 +324,31 @@ counties = [
     },
 ]
 
-for quadrant in range(5):
+# quadrants are numbered right to left, top to bottom
+transform_x = 0
+transform_y = 0
+for quadrant in range(6):
+    # x transform conditions
+    if quadrant % 2 != 0:
+        transform_x = x_transform
+        transform_y = 0
+    else:
+        transform_x = 0
+        transform_y = 0
+    # y transform conditions
+    if quadrant == 2 or quadrant == 3:
+        transform_y = y_middle_transform
+    elif quadrant == 4 or quadrant == 5:
+        transform_y = y_bottom_transform 
+    
     for county in counties:
-        county_occurance = image[county["y"]][county["x"]]
+
+        county_occurance = image[county["y"] + transform_y][county["x"] + transform_x]
         if county_occurance < 0.5:
-            print(county["name"])
-            # code to insert county occurance data
+            break
+            # TODO code to insert county occurance data
+    
+    # TODO code to input data into database
 
 print(pytesseract.image_to_string(Image.open("gymnosperms_1.jpeg")))
 
