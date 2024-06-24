@@ -4,7 +4,8 @@ CREATE DATABASE plants;
 
 CREATE SCHEMA ar_plants;
 
--- Create the table in the specified schema
+SET search_path TO ar_plants;
+
 CREATE TABLE ar_plants.phyla
 (
     phyla_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
@@ -15,7 +16,7 @@ CREATE TABLE ar_plants.family
 (
     family_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     family VARCHAR(50) NOT NULL,
-    phyla_id INTEGER REFERENCES phyla (phyla_id) 
+    phyla_id INTEGER REFERENCES phyla (phyla_id)
 );
 
 CREATE TABLE ar_plants.genera
@@ -26,7 +27,6 @@ CREATE TABLE ar_plants.genera
     phyla_id INTEGER REFERENCES phyla (phyla_id)
 );
 
--- list of all vascular plant species and relevant data
 CREATE TABLE ar_plants.species
 (
     species_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
@@ -48,10 +48,8 @@ CREATE TABLE ar_plants.counties
     county_name VARCHAR(50) NOT NULL
 );
 
--- table checks for species occurance in a county
 CREATE TABLE ar_plants.county_occurance
 (
     species_id INTEGER REFERENCES species (species_id),
     county_id INTEGER REFERENCES counties (county_id)
 );
-;
