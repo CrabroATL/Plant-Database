@@ -378,6 +378,7 @@ def process_images(cur, path, phyla):
         else:
             return 1
         
+        # check if SQL data already exists
         if eval(("lines_text" + str(quadrant)))[0].isalnum() == False:
             continue
         phyla = str(phyla.removeprefix("images/").removesuffix("_"))
@@ -391,8 +392,10 @@ def process_images(cur, path, phyla):
         common = eval(("lines_text" + str(quadrant)))[3]
 
         cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
-        family_id_test = cur.fetchone()[0]
-        if family_id_test == False:    
+        family_id_test = cur.fetchone()
+        
+        # Avoid duplicate insertions into database
+        if family_id_test == None:    
             cur.execute("INSERT INTO family VALUES (DEFAULT, %s, %s)", (family, phyla_id))
         else:
             continue
