@@ -338,7 +338,7 @@ def process_images(cur, path, phyla):
             quadrant0_bool = img.crop(text_crop_bools)
             q0 = np.asarray(quadrant0)
             q_bool0 = np.asarray(quadrant0_bool)
-            raw_text_bool0 = pytesseract.image_to_string(q_bool0)
+            raw_text_bool0 = pytesseract.image_to_string(q_bool0,config="--psm 6 digits"q)
             raw_text0 = pytesseract.image_to_string(q0)
             lines_text0 = raw_text0.splitlines()       
         elif quadrant == 1:
@@ -346,7 +346,7 @@ def process_images(cur, path, phyla):
             quadrant1_bool = img.crop(tuple(np.add(text_crop_bools, x_transform_tuple)))
             q1 = np.asarray(quadrant1)
             q_bool1 = np.asarray(quadrant1_bool)
-            raw_text_bool1 = pytesseract.image_to_string(q_bool1)
+            raw_text_bool1 = pytesseract.image_to_string(q_bool1,config="--psm 6 digits")
             raw_text1 = pytesseract.image_to_string(q1)
             lines_text1 = raw_text1.splitlines()
         elif quadrant == 2:
@@ -354,7 +354,7 @@ def process_images(cur, path, phyla):
             quadrant2_bool = img.crop(tuple(np.add(text_crop_bools, y_middle_transform_tuple)))
             q2 = np.asarray(quadrant2)
             q_bool2 = np.asarray(quadrant2_bool)
-            raw_text_bool2 = pytesseract.image_to_string(q_bool2)
+            raw_text_bool2 = pytesseract.image_to_string(q_bool2,config="--psm 6 digits")
             raw_text2 = pytesseract.image_to_string(q2)
             lines_text2 = raw_text2.splitlines()
         elif quadrant == 3:
@@ -362,7 +362,7 @@ def process_images(cur, path, phyla):
             quadrant3_bool = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_middle_transform_tuple))), x_transform_tuple)))
             q3 = np.asarray(quadrant3)
             q_bool3 = np.asarray(quadrant3_bool)
-            raw_text_bool3 = pytesseract.image_to_string(q_bool3)
+            raw_text_bool3 = pytesseract.image_to_string(q_bool3,config="--psm 6 digits")
             raw_text3 = pytesseract.image_to_string(q3)
             lines_text3 = raw_text3.splitlines()   
         elif quadrant == 4:
@@ -370,7 +370,7 @@ def process_images(cur, path, phyla):
             quadrant4_bool = img.crop(tuple(np.add(text_crop_bools, y_bottom_transform_tuple)))
             q4 = np.asarray(quadrant4)
             q_bool4 = np.asarray(quadrant4_bool)
-            raw_text_bool4 = pytesseract.image_to_string(q_bool4)
+            raw_text_bool4 = pytesseract.image_to_string(q_bool4, config="--psm 6 digits")
             raw_text4 = pytesseract.image_to_string(q4)
             lines_text4 = raw_text4.splitlines()
         elif quadrant == 5:
@@ -378,13 +378,13 @@ def process_images(cur, path, phyla):
             quadrant5_bool = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_bottom_transform_tuple))), x_transform_tuple)))
             q5 = np.asarray(quadrant5)
             q_bool5 = np.asarray(quadrant5_bool)
-            raw_text_bool5 = pytesseract.image_to_string(q_bool5)
+            raw_text_bool5 = pytesseract.image_to_string(q_bool5, config="--psm 6 digits")
             raw_text5 = pytesseract.image_to_string(q5)
             lines_text5 = raw_text5.splitlines()
         else:
             return 1
         
-        # check if qyadrant is empty
+        # check if quadrant is empty
         if eval(("lines_text" + str(quadrant)))[0].isalnum() == False:
             continue
         
@@ -392,25 +392,35 @@ def process_images(cur, path, phyla):
         phyla = str(phyla.removeprefix("images/").removesuffix("_"))
         cur.execute("SELECT phyla_id FROM phyla WHERE polyphylactic_group = %s", (phyla,))
         phyla_id = cur.fetchone()[0]
-        if "1" in eval(("raw_text_bool" + str(quadrant))):
+        current_status = eval(("raw_text_bool" + str(quadrant)))
+        if not ("1" or "2" or "3" or "4") in current_status:
             native_bool = True
-        else:
-            native_bool = False
-        if "2" in eval(("raw_text_bool" + str(quadrant))):
-            endemic_bool = True
-        else:
             endemic_bool = False
-        if "3" in eval(("raw_text_bool" + str(quadrant))):
-            special_concern_bool = True
-        else:
             special_concern_bool = False
-        if "4" in eval(("raw_text_bool" + str(quadrant))):
-            introduced_bool = True
-        else:
             introduced_bool = False
-        if "5" in eval(("raw_text_bool" + str(quadrant))):
+            invasive_bool = False
+        if "1" in current_status:
+            introduced_bool = True
+            native_bool = False
+            endemic_bool = False
+            special_concern_bool = False
+            invasive_bool = False
+        if "2" in current_status:
+            introduced_bool = False
+            native_bool = True
+            endemic_bool = True
+            special_concern_bool = False
+            invasive_bool = False
+        if "3" in current_status:
+            introduced_bool = True
+            native_bool = False
+            endemic_bool = False
+            special_concern_bool = False
             invasive_bool = True
-        else:
+        if "4" in current_status:
+            introduced_bool = False
+            native_bool = True
+            special_concern_bool = True
             invasive_bool = False
         family = eval(("lines_text" + str(quadrant)))[0]
         genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
