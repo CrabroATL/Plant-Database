@@ -13,7 +13,7 @@ plt.switch_backend('TkAgg')
 x_transform = 780
 y_middle_transform = 675
 y_bottom_transform = 1346
-text_crop_species = (241, 555, 740, 690)
+text_crop_species = (241, 555, 740, 710)
 text_crop_bools = (610, 420, 700, 550)
 x_transform_tuple = (x_transform, 0, x_transform, 0)
 y_middle_transform_tuple = (0, y_middle_transform, 0, y_middle_transform)
@@ -338,20 +338,23 @@ def process_images(cur, path, phyla):
             quadrant0_bool = img.crop(text_crop_bools)
             q0 = np.asarray(quadrant0)
             q_bool0 = np.asarray(quadrant0_bool)
+            raw_text_bool0 = pytesseract.image_to_string(q_bool0)
             raw_text0 = pytesseract.image_to_string(q0)
             lines_text0 = raw_text0.splitlines()       
         elif quadrant == 1:
             quadrant1 = img.crop(tuple(np.add(text_crop_species, x_transform_tuple)))
             quadrant1_bool = img.crop(tuple(np.add(text_crop_bools, x_transform_tuple)))
-            q_bool1 = np.asarray(quadrant1_bool)
             q1 = np.asarray(quadrant1)
+            q_bool1 = np.asarray(quadrant1_bool)
+            raw_text_bool1 = pytesseract.image_to_string(q_bool1)
             raw_text1 = pytesseract.image_to_string(q1)
             lines_text1 = raw_text1.splitlines()
         elif quadrant == 2:
             quadrant2 = img.crop(tuple(np.add(text_crop_species, y_middle_transform_tuple)))
             quadrant2_bool = img.crop(tuple(np.add(text_crop_bools, y_middle_transform_tuple)))
-            q_bool2 = np.asarray(quadrant2_bool)
             q2 = np.asarray(quadrant2)
+            q_bool2 = np.asarray(quadrant2_bool)
+            raw_text_bool2 = pytesseract.image_to_string(q_bool2)
             raw_text2 = pytesseract.image_to_string(q2)
             lines_text2 = raw_text2.splitlines()
         elif quadrant == 3:
@@ -359,6 +362,7 @@ def process_images(cur, path, phyla):
             quadrant3_bool = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_middle_transform_tuple))), x_transform_tuple)))
             q3 = np.asarray(quadrant3)
             q_bool3 = np.asarray(quadrant3_bool)
+            raw_text_bool3 = pytesseract.image_to_string(q_bool3)
             raw_text3 = pytesseract.image_to_string(q3)
             lines_text3 = raw_text3.splitlines()   
         elif quadrant == 4:
@@ -366,6 +370,7 @@ def process_images(cur, path, phyla):
             quadrant4_bool = img.crop(tuple(np.add(text_crop_bools, y_bottom_transform_tuple)))
             q4 = np.asarray(quadrant4)
             q_bool4 = np.asarray(quadrant4_bool)
+            raw_text_bool4 = pytesseract.image_to_string(q_bool4)
             raw_text4 = pytesseract.image_to_string(q4)
             lines_text4 = raw_text4.splitlines()
         elif quadrant == 5:
@@ -373,37 +378,73 @@ def process_images(cur, path, phyla):
             quadrant5_bool = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_bottom_transform_tuple))), x_transform_tuple)))
             q5 = np.asarray(quadrant5)
             q_bool5 = np.asarray(quadrant5_bool)
+            raw_text_bool5 = pytesseract.image_to_string(q_bool5)
             raw_text5 = pytesseract.image_to_string(q5)
             lines_text5 = raw_text5.splitlines()
         else:
             return 1
         
-        # check if SQL data already exists
+        # check if qyadrant is empty
         if eval(("lines_text" + str(quadrant)))[0].isalnum() == False:
             continue
+        
+        # extract data into variables
         phyla = str(phyla.removeprefix("images/").removesuffix("_"))
-        print(phyla)
         cur.execute("SELECT phyla_id FROM phyla WHERE polyphylactic_group = %s", (phyla,))
         phyla_id = cur.fetchone()[0]
-        print(phyla_id)
+        if "1" in eval(("raw_text_bool" + str(quadrant))):
+            native_bool = True
+        else:
+            native_bool = False
+        if "2" in eval(("raw_text_bool" + str(quadrant))):
+            endemic_bool = True
+        else:
+            endemic_bool = False
+        if "3" in eval(("raw_text_bool" + str(quadrant))):
+            special_concern_bool = True
+        else:
+            special_concern_bool = False
+        if "4" in eval(("raw_text_bool" + str(quadrant))):
+            introduced_bool = True
+        else:
+            introduced_bool = False
+        if "5" in eval(("raw_text_bool" + str(quadrant))):
+            invasive_bool = True
+        else:
+            invasive_bool = False
         family = eval(("lines_text" + str(quadrant)))[0]
         genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
         species = eval(("lines_text" + str(quadrant)))[1]+ " " + (eval(("lines_text" + str(quadrant)))[2].split("  ")[0])
-        common = eval(("lines_text" + str(quadrant)))[3]
+        common = eval(("lines_text" + str(quadrant)))[3] + eval(("lines_text" + str(quadrant)))[4]
 
         cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
         family_id_test = cur.fetchone()
-        
+        cur.execute("SELECT genera_id FROM genera WHERE genera = %s", (genera,))
+        genera_id_test = cur.fetchone()
+        cur.execute("SELECT species_id FROM species WHERE scientific_name = %s", (species,))
+        species_id_test = cur.fetchone()
+
         # Avoid duplicate insertions into database
-        if family_id_test == None:    
-            cur.execute("INSERT INTO family VALUES (DEFAULT, %s, %s)", (family, phyla_id))
+        if family_id_test == None:
+            cur.execute("INSERT INTO family VALUES (DEFAULT, %s, %s)", (family, phyla_id))    
+            cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
+            family_id = cur.fetchone()[0]
+        if genera_id_test == None:
+            cur.execute("INSERT INTO genera VALUES (DEFAULT, %s, %s, %s)", (genera, family_id, phyla_id))
+            cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
+            family_id = cur.fetchone()[0]
+            cur.execute("SELECT genera_id FROM genera WHERE genera = %s", (genera,))
+            genera_id = cur.fetchone()[0]
+        if species_id_test == None:
+            cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
+            family_id = cur.fetchone()[0]
+            cur.execute("SELECT genera_id FROM genera WHERE genera = %s", (genera,))
+            genera_id = cur.fetchone()[0]
+            cur.execute("INSERT INTO species VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                (species, common, native_bool, endemic_bool, special_concern_bool, introduced_bool, invasive_bool, genera_id, family_id, phyla_id))
         else:
             continue
-        cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
-        family_id = cur.fetchone()[0]
-        cur.execute("INSERT INTO genera VALUES (DEFAULT, %s, %s, %s)", (genera, family_id, phyla_id))
-        print(family, genera, species, common)
-
+        
         # x transform conditions
         if quadrant % 2 != 0:
             transform_x = x_transform
@@ -420,9 +461,11 @@ def process_images(cur, path, phyla):
         for county in counties:
             county_occurance = image[county["y"] + transform_y][county["x"] + transform_x]
             if county_occurance < 0.5:
-                # species_id = cur.execute("SELECT species_id FROM species WHERE scientific_name = %s;", (VARIABLE_TODO,))
-                # county_id = cur.execute("SELECT county_id FROM counties WHERE county_name = %s;", (county["name"],))
-                # cur.execute("INSERT INTO county_occurance VALUES (%s, %s);", (species_id, county_id,))
+                cur.execute("SELECT species_id FROM species WHERE scientific_name = %s;", (species,))
+                species_id = cur.fetchone()
+                cur.execute("SELECT county_id FROM counties WHERE county_name = %s;", (county["name"],))
+                county_id = cur.fetchone()
+                cur.execute("INSERT INTO county_occurance VALUES (%s, %s);", (species_id, county_id,))
                 continue
     return
                 
@@ -441,7 +484,7 @@ def main():
             if exists(phyla + str(i) + '.jpeg') is True:
                 path = phyla + str(i) + '.jpeg'
                 process_images(cur, path, phyla)
-                # upload_to_database(data)
+                # upload_to_database(data) "maybe I wont build this function"
                 continue
             else:
                 continue
