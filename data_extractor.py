@@ -13,15 +13,22 @@ plt.switch_backend('TkAgg')
 x_transform = 780
 y_middle_transform = 675
 y_bottom_transform = 1346
-text_crop_species = (241, 555, 740, 710)
+text_crop_species = (150, 555, 790, 710)
 text_crop_bools = (610, 420, 700, 550)
 x_transform_tuple = (x_transform, 0, x_transform, 0)
 y_middle_transform_tuple = (0, y_middle_transform, 0, y_middle_transform)
 y_bottom_transform_tuple = (0, y_bottom_transform, 0, y_bottom_transform)
+QUADRANT_COUNT = 6
+GRAYSCALE_BLACK_VALUE = 0.5
+
+def transform_image():
+    return
 
 def process_images(cur, path, phyla):
     
     # y is before x when indexing into the image
+    # TODO put counties into JSON file and read the JSON file into "counties"
+    # maybe TODO create county class
     counties = [
         {"name": "arkansas",
         "x": 556,
@@ -328,7 +335,7 @@ def process_images(cur, path, phyla):
     # quadrants are numbered right to left, top to bottom from 0 - 5
     transform_x = 0
     transform_y = 0
-    for quadrant in range(6):
+    for quadrant in range(QUADRANT_COUNT):
         image = imread(path, as_gray = True)
         img = PIL.Image.open(path)
         
@@ -338,7 +345,7 @@ def process_images(cur, path, phyla):
             quadrant0_bool = img.crop(text_crop_bools)
             q0 = np.asarray(quadrant0)
             q_bool0 = np.asarray(quadrant0_bool)
-            raw_text_bool0 = pytesseract.image_to_string(q_bool0,config="--psm 6 digits"q)
+            raw_text_bool0 = pytesseract.image_to_string(q_bool0,config="--psm 6 digits")
             raw_text0 = pytesseract.image_to_string(q0)
             lines_text0 = raw_text0.splitlines()       
         elif quadrant == 1:
@@ -382,14 +389,14 @@ def process_images(cur, path, phyla):
             raw_text5 = pytesseract.image_to_string(q5)
             lines_text5 = raw_text5.splitlines()
         else:
-            return 1
+            raise Exception("no quadrant error")
         
         # check if quadrant is empty
+        print(eval(("lines_text" + str(quadrant)))[0])
         if eval(("lines_text" + str(quadrant)))[0].isalnum() == False:
             continue
         
         # extract data into variables
-        phyla = str(phyla.removeprefix("images/").removesuffix("_"))
         cur.execute("SELECT phyla_id FROM phyla WHERE polyphylactic_group = %s", (phyla,))
         phyla_id = cur.fetchone()[0]
         current_status = eval(("raw_text_bool" + str(quadrant)))
@@ -422,10 +429,45 @@ def process_images(cur, path, phyla):
             native_bool = True
             special_concern_bool = True
             invasive_bool = False
-        family = eval(("lines_text" + str(quadrant)))[0]
-        genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
-        species = eval(("lines_text" + str(quadrant)))[1]+ " " + (eval(("lines_text" + str(quadrant)))[2].split("  ")[0])
-        common = eval(("lines_text" + str(quadrant)))[3] + eval(("lines_text" + str(quadrant)))[4]
+        
+        # rules of text extraction
+        # text = eval(("lines_text" + str(quadrant)))
+        # clean_text = [line for line in text if text[line].isalnum() == True]
+
+
+        # use list slicers to clean this up 1:-1 should get front and back, check for "infraspecfic"
+        if len(eval(("lines_text" + str(quadrant)))) == 2:
+            family = eval(("lines_text" + str(quadrant)))[0]
+            genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
+            species = eval(("lines_text" + str(quadrant)))[1]
+            common = "(None)"
+        if len(eval(("lines_text" + str(quadrant)))) == 3: 
+            family = eval(("lines_text" + str(quadrant)))[0]
+            genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
+            species = eval(("lines_text" + str(quadrant)))[1]
+            common = eval(("lines_text" + str(quadrant)))[2]
+        elif len(eval(("lines_text" + str(quadrant)))) == 4:
+            if "infraspecific taxa and species status" in eval(("lines_text" + str(quadrant)))[3]:
+                family = eval(("lines_text" + str(quadrant)))[0]
+                genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
+                species = eval(("lines_text" + str(quadrant)))[1]
+                common = eval(("lines_text" + str(quadrant)))[2]
+            else:    
+                family = eval(("lines_text" + str(quadrant)))[0]
+                genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
+                species = eval(("lines_text" + str(quadrant)))[1]+ " " + eval(("lines_text" + str(quadrant)))[2]
+                common = eval(("lines_text" + str(quadrant)))[3]
+        elif len(eval(("lines_text" + str(quadrant)))) == 5:
+            if "infraspecific taxa and species status" in eval(("lines_text" + str(quadrant)))[3]:
+                family = eval(("lines_text" + str(quadrant)))[0]
+                genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
+                species = eval(("lines_text" + str(quadrant)))[1]+ " " + eval(("lines_text" + str(quadrant)))[2]
+                common = eval(("lines_text" + str(quadrant)))[3]    
+            else:
+                family = eval(("lines_text" + str(quadrant)))[0]
+                genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
+                species = eval(("lines_text" + str(quadrant)))[1]+ " " + eval(("lines_text" + str(quadrant)))[2] + " " + eval(("lines_text" + str(quadrant)))[3]
+                common = eval(("lines_text" + str(quadrant)))[4]
 
         cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
         family_id_test = cur.fetchone()
@@ -437,19 +479,13 @@ def process_images(cur, path, phyla):
         # Avoid duplicate insertions into database
         if family_id_test == None:
             cur.execute("INSERT INTO family VALUES (DEFAULT, %s, %s)", (family, phyla_id))    
-            cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
-            family_id = cur.fetchone()[0]
+        cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
+        family_id = cur.fetchone()[0]
         if genera_id_test == None:
             cur.execute("INSERT INTO genera VALUES (DEFAULT, %s, %s, %s)", (genera, family_id, phyla_id))
-            cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
-            family_id = cur.fetchone()[0]
-            cur.execute("SELECT genera_id FROM genera WHERE genera = %s", (genera,))
-            genera_id = cur.fetchone()[0]
+        cur.execute("SELECT genera_id FROM genera WHERE genera = %s", (genera,))
+        genera_id = cur.fetchone()[0]
         if species_id_test == None:
-            cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
-            family_id = cur.fetchone()[0]
-            cur.execute("SELECT genera_id FROM genera WHERE genera = %s", (genera,))
-            genera_id = cur.fetchone()[0]
             cur.execute("INSERT INTO species VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
                 (species, common, native_bool, endemic_bool, special_concern_bool, introduced_bool, invasive_bool, genera_id, family_id, phyla_id))
         else:
@@ -463,14 +499,14 @@ def process_images(cur, path, phyla):
             transform_x = 0
             transform_y = 0
         # y transform conditions
-        if quadrant == 2 or quadrant == 3:
+        if quadrant in [2, 3]:
             transform_y = y_middle_transform
-        elif quadrant == 4 or quadrant == 5:
+        elif quadrant in [4, 5]:
             transform_y = y_bottom_transform 
         
         for county in counties:
             county_occurance = image[county["y"] + transform_y][county["x"] + transform_x]
-            if county_occurance < 0.5:
+            if county_occurance < GRAYSCALE_BLACK_VALUE:
                 cur.execute("SELECT species_id FROM species WHERE scientific_name = %s;", (species,))
                 species_id = cur.fetchone()
                 cur.execute("SELECT county_id FROM counties WHERE county_name = %s;", (county["name"],))
@@ -480,20 +516,25 @@ def process_images(cur, path, phyla):
     return
                 
 def main():
-    conn = psy.connect('dbname=postgres user=postgres password=password host=host.docker.internal')
+    print("before database")
+    conn = psy.connect('dbname=postgres user=postgres password=password host=0.0.0.0 port=30420')
+    print("after con before auto commit")
     conn.autocommit = True
+    print("database connected")
 
     cur = conn.cursor()
     cur.execute("SET search_path TO ar_plants;")
 
     # gather county data
-    
+# TODO refactor as looping over images in the directory using os    
     phylas = {'images/gymnosperms_', 'images/pteridophytes_', 'images/angiosperm_monocots_', 'images/angiosperm_dicots_'}
     for phyla in phylas:
-        for i in range(5000):
+        for i in range(320):
             if exists(phyla + str(i) + '.jpeg') is True:
                 path = phyla + str(i) + '.jpeg'
-                process_images(cur, path, phyla)
+                phyla_name = str(phyla.removeprefix("images/").removesuffix("_")).replace("_", " ")
+                print(path)
+                process_images(cur, path, phyla_name)
                 # upload_to_database(data) "maybe I wont build this function"
                 continue
             else:
@@ -510,3 +551,10 @@ def main():
 
     
 main()
+
+
+
+# problems for extracting scientific and common names.
+# handle species with "infraspecific taxa and species status"
+# if 5 lines of text, the middle three are the full scientific name
+# some plants don't have a common name
