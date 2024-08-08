@@ -5,7 +5,7 @@ from skimage.io import imread, imshow
 import psycopg2 as psy
 import pytesseract
 import PIL
-from os.path import exists
+import os
 
 plt.switch_backend('TkAgg')
 
@@ -21,8 +21,71 @@ y_bottom_transform_tuple = (0, y_bottom_transform, 0, y_bottom_transform)
 QUADRANT_COUNT = 6
 GRAYSCALE_BLACK_VALUE = 0.5
 
-def transform_image():
+def transform_image(x, y):
     return
+
+def ocr_image(quadrant, text_crop_species, text_crop_bools, x_transform_tuple, y_middle_transform_tuple, y_bottom_transform_tuple, img):
+    if quadrant == 0: 
+        species_crop = img.crop(text_crop_species)
+        bool_crop = img.crop(text_crop_bools)
+    elif quadrant == 1:
+        species_crop = img.crop(tuple(np.add(text_crop_species, x_transform_tuple)))
+        bool_crop = img.crop(tuple(np.add(text_crop_bools, x_transform_tuple)))
+    elif quadrant == 2:
+        species_crop = img.crop(tuple(np.add(text_crop_species, y_middle_transform_tuple)))
+        bool_crop = img.crop(tuple(np.add(text_crop_bools, y_middle_transform_tuple)))
+    elif quadrant == 3:
+        species_crop = img.crop(tuple(np.add((tuple(np.add(text_crop_species, y_middle_transform_tuple))), x_transform_tuple)))
+        bool_crop = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_middle_transform_tuple))), x_transform_tuple)))
+    elif quadrant == 4:
+        species_crop = img.crop(tuple(np.add(text_crop_species, y_bottom_transform_tuple)))
+        bool_crop = img.crop(tuple(np.add(text_crop_bools, y_bottom_transform_tuple)))
+    elif quadrant == 5:
+        species_crop = img.crop(tuple(np.add((tuple(np.add(text_crop_species, y_bottom_transform_tuple))), x_transform_tuple)))
+        bool_crop = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_bottom_transform_tuple))), x_transform_tuple)))
+    else:
+        raise Exception("no quadrant error")
+    
+    np_species_crop = np.asarray(species_crop)
+    np_bool_crop = np.asarray(bool_crop)
+    raw_bool = pytesseract.image_to_string(np_bool_crop,config="--psm 6 digits")
+    raw_text = pytesseract.image_to_string(np_species_crop)
+    lined_text = raw_text.splitlines()
+    clean_text = [line for line in lined_text if line != "" and line != " "]
+    print(clean_text)
+    return(clean_text, raw_bool)
+
+def set_bools(raw_bool):
+    if "1" or "2" or "3" or "4" not in raw_bool:
+        native_bool = True
+        endemic_bool = False
+        special_concern_bool = False
+        introduced_bool = False
+        invasive_bool = False
+    if "1" in raw_bool:
+        introduced_bool = True
+        native_bool = False
+        endemic_bool = False
+        special_concern_bool = False
+        invasive_bool = False
+    if "2" in raw_bool:
+        introduced_bool = False
+        native_bool = True
+        endemic_bool = True
+        special_concern_bool = False
+        invasive_bool = False
+    if "3" in raw_bool:
+        introduced_bool = True
+        native_bool = False
+        endemic_bool = False
+        special_concern_bool = False
+        invasive_bool = True
+    if "4" in raw_bool:
+        introduced_bool = False
+        native_bool = True
+        special_concern_bool = True
+        invasive_bool = False
+    return(native_bool, endemic_bool, special_concern_bool, introduced_bool, invasive_bool)
 
 def process_images(cur, path, phyla):
     
@@ -340,134 +403,30 @@ def process_images(cur, path, phyla):
         img = PIL.Image.open(path)
         
         # extract text data based on quadrant
-        if quadrant == 0:
-            quadrant0 = img.crop(text_crop_species)
-            quadrant0_bool = img.crop(text_crop_bools)
-            q0 = np.asarray(quadrant0)
-            q_bool0 = np.asarray(quadrant0_bool)
-            raw_text_bool0 = pytesseract.image_to_string(q_bool0,config="--psm 6 digits")
-            raw_text0 = pytesseract.image_to_string(q0)
-            lines_text0 = raw_text0.splitlines()       
-        elif quadrant == 1:
-            quadrant1 = img.crop(tuple(np.add(text_crop_species, x_transform_tuple)))
-            quadrant1_bool = img.crop(tuple(np.add(text_crop_bools, x_transform_tuple)))
-            q1 = np.asarray(quadrant1)
-            q_bool1 = np.asarray(quadrant1_bool)
-            raw_text_bool1 = pytesseract.image_to_string(q_bool1,config="--psm 6 digits")
-            raw_text1 = pytesseract.image_to_string(q1)
-            lines_text1 = raw_text1.splitlines()
-        elif quadrant == 2:
-            quadrant2 = img.crop(tuple(np.add(text_crop_species, y_middle_transform_tuple)))
-            quadrant2_bool = img.crop(tuple(np.add(text_crop_bools, y_middle_transform_tuple)))
-            q2 = np.asarray(quadrant2)
-            q_bool2 = np.asarray(quadrant2_bool)
-            raw_text_bool2 = pytesseract.image_to_string(q_bool2,config="--psm 6 digits")
-            raw_text2 = pytesseract.image_to_string(q2)
-            lines_text2 = raw_text2.splitlines()
-        elif quadrant == 3:
-            quadrant3 = img.crop(tuple(np.add((tuple(np.add(text_crop_species, y_middle_transform_tuple))), x_transform_tuple)))
-            quadrant3_bool = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_middle_transform_tuple))), x_transform_tuple)))
-            q3 = np.asarray(quadrant3)
-            q_bool3 = np.asarray(quadrant3_bool)
-            raw_text_bool3 = pytesseract.image_to_string(q_bool3,config="--psm 6 digits")
-            raw_text3 = pytesseract.image_to_string(q3)
-            lines_text3 = raw_text3.splitlines()   
-        elif quadrant == 4:
-            quadrant4 = img.crop(tuple(np.add(text_crop_species, y_bottom_transform_tuple)))
-            quadrant4_bool = img.crop(tuple(np.add(text_crop_bools, y_bottom_transform_tuple)))
-            q4 = np.asarray(quadrant4)
-            q_bool4 = np.asarray(quadrant4_bool)
-            raw_text_bool4 = pytesseract.image_to_string(q_bool4, config="--psm 6 digits")
-            raw_text4 = pytesseract.image_to_string(q4)
-            lines_text4 = raw_text4.splitlines()
-        elif quadrant == 5:
-            quadrant5 = img.crop(tuple(np.add((tuple(np.add(text_crop_species, y_bottom_transform_tuple))), x_transform_tuple)))
-            quadrant5_bool = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_bottom_transform_tuple))), x_transform_tuple)))
-            q5 = np.asarray(quadrant5)
-            q_bool5 = np.asarray(quadrant5_bool)
-            raw_text_bool5 = pytesseract.image_to_string(q_bool5, config="--psm 6 digits")
-            raw_text5 = pytesseract.image_to_string(q5)
-            lines_text5 = raw_text5.splitlines()
-        else:
-            raise Exception("no quadrant error")
+        clean_text, raw_bool = ocr_image(quadrant, text_crop_species, text_crop_bools, x_transform_tuple, y_middle_transform_tuple, y_bottom_transform_tuple, img)
+        if len(clean_text) == 0:
+            break    
         
-        # check if quadrant is empty
-        print(eval(("lines_text" + str(quadrant)))[0])
-        if eval(("lines_text" + str(quadrant)))[0].isalnum() == False:
-            continue
+        native_bool, endemic_bool, special_concern_bool, introduced_bool, invasive_bool = set_bools(raw_bool)
+
         
-        # extract data into variables
+        
+
         cur.execute("SELECT phyla_id FROM phyla WHERE polyphylactic_group = %s", (phyla,))
         phyla_id = cur.fetchone()[0]
-        current_status = eval(("raw_text_bool" + str(quadrant)))
-        if not ("1" or "2" or "3" or "4") in current_status:
-            native_bool = True
-            endemic_bool = False
-            special_concern_bool = False
-            introduced_bool = False
-            invasive_bool = False
-        if "1" in current_status:
-            introduced_bool = True
-            native_bool = False
-            endemic_bool = False
-            special_concern_bool = False
-            invasive_bool = False
-        if "2" in current_status:
-            introduced_bool = False
-            native_bool = True
-            endemic_bool = True
-            special_concern_bool = False
-            invasive_bool = False
-        if "3" in current_status:
-            introduced_bool = True
-            native_bool = False
-            endemic_bool = False
-            special_concern_bool = False
-            invasive_bool = True
-        if "4" in current_status:
-            introduced_bool = False
-            native_bool = True
-            special_concern_bool = True
-            invasive_bool = False
-        
-        # rules of text extraction
-        # text = eval(("lines_text" + str(quadrant)))
-        # clean_text = [line for line in text if text[line].isalnum() == True]
 
 
         # use list slicers to clean this up 1:-1 should get front and back, check for "infraspecfic"
-        if len(eval(("lines_text" + str(quadrant)))) == 2:
-            family = eval(("lines_text" + str(quadrant)))[0]
-            genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
-            species = eval(("lines_text" + str(quadrant)))[1]
-            common = "(None)"
-        if len(eval(("lines_text" + str(quadrant)))) == 3: 
-            family = eval(("lines_text" + str(quadrant)))[0]
-            genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
-            species = eval(("lines_text" + str(quadrant)))[1]
-            common = eval(("lines_text" + str(quadrant)))[2]
-        elif len(eval(("lines_text" + str(quadrant)))) == 4:
-            if "infraspecific taxa and species status" in eval(("lines_text" + str(quadrant)))[3]:
-                family = eval(("lines_text" + str(quadrant)))[0]
-                genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
-                species = eval(("lines_text" + str(quadrant)))[1]
-                common = eval(("lines_text" + str(quadrant)))[2]
-            else:    
-                family = eval(("lines_text" + str(quadrant)))[0]
-                genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
-                species = eval(("lines_text" + str(quadrant)))[1]+ " " + eval(("lines_text" + str(quadrant)))[2]
-                common = eval(("lines_text" + str(quadrant)))[3]
-        elif len(eval(("lines_text" + str(quadrant)))) == 5:
-            if "infraspecific taxa and species status" in eval(("lines_text" + str(quadrant)))[3]:
-                family = eval(("lines_text" + str(quadrant)))[0]
-                genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
-                species = eval(("lines_text" + str(quadrant)))[1]+ " " + eval(("lines_text" + str(quadrant)))[2]
-                common = eval(("lines_text" + str(quadrant)))[3]    
-            else:
-                family = eval(("lines_text" + str(quadrant)))[0]
-                genera = eval(("lines_text" + str(quadrant)))[1].split(" ")[0]
-                species = eval(("lines_text" + str(quadrant)))[1]+ " " + eval(("lines_text" + str(quadrant)))[2] + " " + eval(("lines_text" + str(quadrant)))[3]
-                common = eval(("lines_text" + str(quadrant)))[4]
+        if "infraspecific" in clean_text[-1]:
+            family = clean_text[0].replace(" ", "")
+            genera = clean_text[1].split(" ")[0]
+            species = "".join(clean_text[1:-2])
+            common = clean_text[-2]
+        else:
+            family = clean_text[0].replace(" ", "")
+            genera = clean_text[1].split(" ")[0]
+            species = "".join(clean_text[1:-1])
+            common = clean_text[-1]
 
         cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
         family_id_test = cur.fetchone()
@@ -516,29 +475,19 @@ def process_images(cur, path, phyla):
     return
                 
 def main():
-    print("before database")
     conn = psy.connect('dbname=postgres user=postgres password=password host=0.0.0.0 port=30420')
-    print("after con before auto commit")
     conn.autocommit = True
-    print("database connected")
-
     cur = conn.cursor()
     cur.execute("SET search_path TO ar_plants;")
 
     # gather county data
 # TODO refactor as looping over images in the directory using os    
-    phylas = {'images/gymnosperms_', 'images/pteridophytes_', 'images/angiosperm_monocots_', 'images/angiosperm_dicots_'}
-    for phyla in phylas:
-        for i in range(320):
-            if exists(phyla + str(i) + '.jpeg') is True:
-                path = phyla + str(i) + '.jpeg'
-                phyla_name = str(phyla.removeprefix("images/").removesuffix("_")).replace("_", " ")
-                print(path)
-                process_images(cur, path, phyla_name)
-                # upload_to_database(data) "maybe I wont build this function"
-                continue
-            else:
-                continue
+    for file in os.listdir('images/'):
+        path = "images/" + file
+        phyla_name = (file.rsplit("_", 1)[0]).replace("_", " ")
+        process_images(cur, path, phyla_name)
+        # upload_to_database(data) "maybe I wont build this function"
+
 
 
     # print(genera)
