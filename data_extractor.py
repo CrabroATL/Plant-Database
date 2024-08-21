@@ -21,9 +21,6 @@ y_bottom_transform_tuple = (0, y_bottom_transform, 0, y_bottom_transform)
 QUADRANT_COUNT = 6
 GRAYSCALE_BLACK_VALUE = 0.5
 
-def transform_image(x, y):
-    return
-
 def ocr_image(quadrant, text_crop_species, text_crop_bools, x_transform_tuple, y_middle_transform_tuple, y_bottom_transform_tuple, img):
     if quadrant == 0: 
         species_crop = img.crop(text_crop_species)
@@ -415,8 +412,6 @@ def process_images(cur, path, phyla):
         cur.execute("SELECT phyla_id FROM phyla WHERE polyphylactic_group = %s", (phyla,))
         phyla_id = cur.fetchone()[0]
 
-
-        # use list slicers to clean this up 1:-1 should get front and back, check for "infraspecfic"
         if "infraspecific" in clean_text[-1]:
             family = clean_text[0].replace(" ", "")
             genera = clean_text[1].split(" ")[0]
@@ -480,8 +475,7 @@ def main():
     cur = conn.cursor()
     cur.execute("SET search_path TO ar_plants;")
 
-    # gather county data
-# TODO refactor as looping over images in the directory using os    
+    # gather county data    
     for file in os.listdir('images/'):
         path = "images/" + file
         phyla_name = (file.rsplit("_", 1)[0]).replace("_", " ")
