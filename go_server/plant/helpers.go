@@ -3,6 +3,8 @@ package helpers
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"text/template"
 )
 
 type Plant struct {
@@ -38,29 +40,21 @@ func queryDb(r *http.Request) (results []Plant) {
 		queryCounties:       r.Form["counties"],
 	}
 	fmt.Println(q.queryCounties)
-	var query string = `SELECT common_name, scientific_name, genera, family, polyphylactic_group, county_name, native, endemic, special_concern, introduced, invasive FROM species
-	JOIN genera ON genera.genera_id = species.genera_id
-	JOIN family ON family.family_id = species.family_id
-	JOIN phyla ON phyla.phyla_id = species.phyla_id
-	JOIN county_occurance ON county_occurance.species_id = species.species_id
-	JOIN counties ON counties.county_id = county_occurance.county_id
-	WHERE`
-	if q.queryCommonName != "" {
-		query = query + "common_name LIKE" + q.queryCommonName + "AND"
+	tmpl, err := template.ParseFiles("query.tmpl")
+	if err != nil {
+		panic("template not parsed")
 	}
-	if q.queryScientificName != "" {
-		query = query + "scientific_name LIKE" + q.queryScientificName + "AND"
+	err = tmpl.Execute(os.Stdout, q)
+	if err != nil {
+		panic("template not executed.")
 	}
-	if q.queryGenera != "" {
-		query = query + "genera =" + q.queryGenera + "AND"
-	}
-	if q.queryFamily != "" {
-		query = query + "family = " + q.queryFamily + "AND" + q.queryFamily
-	}
-	if q.queryPhyla != "" {
-		query = query + "polyphylactic_group = " + q.queryPhyla + "AND"
-	}
-	fmt.Println(query)
+	// var query string = `SELECT common_name, scientific_name, genera, family, polyphylactic_group, county_name, native, endemic, special_concern, introduced, invasive FROM species
+	// JOIN genera ON genera.genera_id = species.genera_id
+	// JOIN family ON family.family_id = species.family_id
+	// JOIN phyla ON phyla.phyla_id = species.phyla_id
+	// JOIN county_occurance ON county_occurance.species_id = species.species_id
+	// JOIN counties ON counties.county_id = county_occurance.county_id
+	// WHERE`
 	// if len(q.queryCounties) > 0 {
 	// 	query = query + "county_name IN " + q.queryCounties
 	// }
