@@ -6,6 +6,8 @@ import psycopg2 as psy
 import pytesseract
 import PIL
 import os
+import json
+import time
 
 plt.switch_backend('TkAgg')
 
@@ -89,310 +91,11 @@ def process_images(cur, path, phyla):
     # y is before x when indexing into the image
     # TODO put counties into JSON file and read the JSON file into "counties"
     # maybe TODO create county class
-    counties = [
-        {"name": "arkansas",
-        "x": 556,
-        "y": 381
-        },
-        {"name": "ashley",
-        "x": 516,
-        "y": 526
-        },
-        {"name": "baxter",
-        "x": 454,
-        "y": 122
-        },
-        {"name": "benton",
-            "x": 256,
-            "y": 122
-        },
-        {"name": "boone",
-            "x": 377,
-            "y": 128
-        },
-        {"name": "bardley",
-            "x": 473,
-            "y": 490
-        },
-        {"name": "calhoun",
-            "x": 438,
-            "y": 480
-        },
-        {"name": "carroll",
-            "x": 331,
-            "y": 122
-        },
-        {"name": "chicot",
-            "x": 565,
-            "y": 514
-        },
-        {"name": "clark",
-            "x": 368,
-            "y": 418
-        },
-        {"name": "clay",
-            "x": 651,
-            "y": 113
-        },
-        {"name": "cleburne",
-            "x": 484,
-            "y": 225
-        },
-        {"name": "cleveland",
-            "x": 474,
-            "y": 436
-        },
-        {"name": "columbia",
-            "x": 362,
-            "y": 525
-        },
-        {"name": "conway",
-            "x": 418,
-            "y": 261
-        },
-        {"name": "craighead",
-            "x": 633,
-            "y": 186
-        },
-        {"name": "crawford",
-            "x": 254,
-            "y": 219
-        },
-        {"name": "crittenden",
-            "x": 664,
-            "y": 255
-        },
-        {"name": "cross",
-            "x": 620,
-            "y": 255
-        },
-        {"name": "dallas",
-            "x": 421,
-            "y": 428
-        },
-        {"name": "desha",
-            "x": 566,
-            "y": 447
-        },
-        {"name": "drew",
-            "x": 521,
-            "y": 475
-        },
-        {"name": "faulkner",
-            "x": 455,
-            "y": 278
-        },
-        {"name": "franklin",
-            "x": 296,
-            "y": 225
-        },
-        {"name": "fulton",
-            "x": 505,
-            "y": 116
-        },
-        {"name": "garland",
-            "x": 368,
-            "y": 351
-        },
-        {"name": "grant",
-            "x": 443,
-            "y": 388
-        },
-        {"name": "greene",
-            "x": 636,
-            "y": 150
-        },
-        {"name": "hempstead",
-            "x": 316,
-            "y": 456
-        },
-        {"name": "hotspring",
-            "x": 399,
-            "y": 386
-        },
-        {"name": "howard",
-            "x": 285,
-            "y": 414
-        },
-        {"name": "independence",
-            "x": 532,
-            "y": 202
-        },
-        {"name": "izard",
-            "x": 499,
-            "y": 155
-        },
-        {"name": "jackson",
-            "x": 574,
-            "y": 219
-        },
-        {"name": "jefferson",
-            "x": 494,
-            "y": 383
-        },
-        {"name": "johnson",
-            "x": 335,
-            "y": 222
-        },
-        {"name": "lafayette",
-            "x": 321,
-            "y": 525
-        },
-        {"name": "lawrence",
-            "x": 583,
-            "y": 163
-        },
-        {"name": "lee",
-            "x": 619,
-            "y": 322
-        },
-        {"name": "lincoln",
-            "x": 519,
-            "y": 430
-        },
-        {"name": "littleriver",
-            "x": 249,
-            "y": 462
-        },
-        {"name": "logan",
-            "x": 312,
-            "y": 263
-        },
-        {"name": "lonoke",
-            "x": 504,
-            "y": 325
-        },
-        {"name": "madison",
-            "x": 310,
-            "y": 170
-        },
-        {"name": "marion",
-            "x": 415,
-            "y": 134
-        },
-        {"name": "miller",
-            "x": 290,
-            "y": 509
-        },
-        {"name": "mississippi",
-            "x": 686,
-            "y": 189
-        },
-        {"name": "monroe",
-            "x": 574,
-            "y": 333
-        },
-        {"name": "montgomery",
-            "x": 316,
-            "y": 355
-        },
-        {"name": "nevada",
-            "x": 354,
-            "y": 468
-        },
-        {"name": "newton",
-            "x": 377,
-            "y": 128
-        },
-        {"name": "ouachita",
-            "x": 393,
-            "y": 475
-        },
-        {"name": "perry",
-            "x": 395,
-            "y": 300
-        },
-        {"name": "phillips",
-            "x": 616,
-            "y": 358
-        },
-        {"name": "pike",
-            "x": 316,
-            "y": 402
-        },
-        {"name": "poinsett",
-            "x": 626,
-            "y": 219
-        },
-        {"name": "polk",
-            "x": 258,
-            "y": 358
-        },
-        {"name": "pope",
-            "x": 379,
-            "y": 241
-        },
-        {"name": "prairie",
-            "x": 538,
-            "y": 316
-        },
-        {"name": "pulaski",
-            "x": 460,
-            "y": 325
-        },
-        {"name": "randolph",
-            "x": 591,
-            "y": 120
-        },
-        {"name": "saintfrancis",
-            "x": 619,
-            "y": 288
-        },
-        {"name": "saline",
-            "x": 418,
-            "y": 341
-        },
-        {"name": "scott",
-            "x": 276,
-            "y": 313
-        },
-        {"name": "searcy",
-            "x": 416,
-            "y": 178
-        },
-        {"name": "sebastian",
-            "x": 251,
-            "y": 265
-        },
-        {"name": "sevier",
-            "x": 251,
-            "y": 420
-        },
-        {"name": "sharp",
-            "x": 538,
-            "y": 152
-        },
-        {"name": "stone",
-            "x": 465,
-            "y": 185
-        },
-        {"name": "union",
-            "x": 426,
-            "y": 531
-        },
-        {"name": "vanburen",
-            "x": 438,
-            "y": 219
-        },
-        {"name": "washington",
-            "x": 260,
-            "y": 170
-        },
-        {"name": "white",
-            "x": 516,
-            "y": 264
-        },
-        {"name": "woodruff",
-            "x": 572,
-            "y": 269
-        },
-        {"name": "yell",
-            "x": 338,
-            "y": 294
-        },
-    ]
-
-    # quadrants are numbered right to left, top to bottom from 0 - 5
+    
+    with open("countiesxy.json", "r") as file:
+        counties = json.load(file)
+    
+    # quadrants are numbered left to right, top to bottom from 0 - 5
     transform_x = 0
     transform_y = 0
     for quadrant in range(QUADRANT_COUNT):
@@ -405,9 +108,6 @@ def process_images(cur, path, phyla):
             break    
         
         native_bool, endemic_bool, special_concern_bool, introduced_bool, invasive_bool = set_bools(raw_bool)
-
-        
-        
 
         cur.execute("SELECT phyla_id FROM phyla WHERE polyphylactic_group = %s", (phyla,))
         phyla_id = cur.fetchone()[0]
@@ -423,6 +123,7 @@ def process_images(cur, path, phyla):
             species = "".join(clean_text[1:-1])
             common = clean_text[-1]
 
+        # Avoid duplicate insertions into database
         cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
         family_id_test = cur.fetchone()
         cur.execute("SELECT genera_id FROM genera WHERE genera = %s", (genera,))
@@ -430,7 +131,6 @@ def process_images(cur, path, phyla):
         cur.execute("SELECT species_id FROM species WHERE scientific_name = %s", (species,))
         species_id_test = cur.fetchone()
 
-        # Avoid duplicate insertions into database
         if family_id_test == None:
             cur.execute("INSERT INTO family VALUES (DEFAULT, %s, %s)", (family, phyla_id))    
         cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
@@ -470,6 +170,7 @@ def process_images(cur, path, phyla):
     return
                 
 def main():
+    start = time.time()
     conn = psy.connect('dbname=postgres user=postgres password=password host=0.0.0.0 port=30420')
     conn.autocommit = True
     cur = conn.cursor()
@@ -481,7 +182,8 @@ def main():
         phyla_name = (file.rsplit("_", 1)[0]).replace("_", " ")
         process_images(cur, path, phyla_name)
         # upload_to_database(data) "maybe I wont build this function"
-
+    end = time.time()
+    print(end-start)
 
 
     # print(genera)

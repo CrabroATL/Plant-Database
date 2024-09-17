@@ -10,13 +10,16 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/CrabroATL/Plant-Database/server/helpers"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func handlerFunc(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/":
+		fmt.Print("pre main page")
 		mainPage(w, r)
+		fmt.Println("post main page")
 	case "/search":
 		searchResults(w, r)
 	}
@@ -56,7 +59,14 @@ func checkCounties(r *http.Request) []county {
 }
 
 func searchResults(w http.ResponseWriter, r *http.Request) {
-	queryDB(r)
+	plants, err := helpers.QueryDb(r)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Search results test")
+	for _, plant := range plants {
+		fmt.Printf("%#v\n", plant)
+	}
 
 	tmpl := make(map[string]*template.Template)
 	tmpl["results.html"] = template.Must(template.ParseFiles("results.html", "layout.html"))
@@ -64,6 +74,7 @@ func searchResults(w http.ResponseWriter, r *http.Request) {
 }
 
 func mainPage(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("in main page")
 	tmpl := make(map[string]*template.Template)
 	tmpl["index.html"] = template.Must(template.ParseFiles("index.html", "layout.html"))
 	tmpl["index.html"].ExecuteTemplate(w, "layout", nil)
@@ -77,21 +88,21 @@ func getPlant(phyla string, family string, genera string, commonName string, sci
 	}
 	defer conn.Close()
 
-	test, errr := conn.Exec(context.Background(), "SET search_path TO ar_plants")
+	test, err := conn.Exec(context.Background(), "SET search_path TO ar_plants")
 	if err != nil {
-		log.Fatal(errr)
+		log.Fatal(err)
 	} else {
 		fmt.Println("check", test)
 	}
 }
 
-// getPhyla, err := conn.Query(context.Background(), "SELECT species FROM species WHERE phyla=%s", phyla)
+// getPhyla, err := conn.Query(context.Background(), "SELECT species FROM species WHERE phyla=$1", phyla)
 // if err != nil {
 // 	fmt.Println(err)
 // }
 // defer rows.Close()
 
-// families, err := conn.Query(context.Background(), "SELECT species FROM species WHERE phyla=%s AND family=%s", phyla, family)
+// families, err := conn.Query(context.Background(), "SELECT species FROM species WHERE phyla=$1 AND family=$2", phyla, family)
 // if err != nil {
 // 	fmt.Println(err)
 // }
@@ -105,5 +116,5 @@ func main() {
 	fmt.Println("Starting server .......")
 
 	http.ListenAndServe(":3000", nil)
-
+	fmt.Println("main check")
 }
