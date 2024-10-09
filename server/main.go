@@ -65,9 +65,9 @@ func searchResults(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Search results test")
 	for _, plant := range plants {
-		fmt.Printf("%#v\n", plant)
+		fmt.Printf("%#v\n STRUCT PRINTED", plant)
 	}
-
+	fmt.Println("post struct check")
 	tmpl := make(map[string]*template.Template)
 	tmpl["results.html"] = template.Must(template.ParseFiles("results.html", "layout.html"))
 	tmpl["results.html"].ExecuteTemplate(w, "layout", nil)

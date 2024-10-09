@@ -1,4 +1,4 @@
-    SELECT common_name, scientific_name, genera, family, polyphylactic_group, county_name, native, endemic, special_concern, introduced, invasive 
+    SELECT common_name, scientific_name, genera, family, polyphylactic_group, native, endemic, special_concern, introduced, invasive 
 	FROM species
 	JOIN genera ON genera.genera_id = species.genera_id
 	JOIN family ON family.family_id = species.family_id
@@ -6,9 +6,9 @@
 	JOIN county_occurance ON county_occurance.species_id = species.species_id
 	JOIN counties ON counties.county_id = county_occurance.county_id
 	WHERE 
-	{{ if .QueryCommonName }} common_name LIKE '%{{ .QueryCommonName }}%' AND {{ end }}
-	{{ if .QueryScientificName }} scientific_name LIKE '%{{ .QueryScientificName }}%' AND {{ end }}
-	{{ if .QueryGenera }} genera = '{{ .QueryGenera }}' AND {{ end }}
-	{{ if .QueryFamily }} family = '{{ .QueryFamily }}' AND {{ end }}
+	{{ if .QueryCommonName }} common_name LIKE ? AND {{ end }}
+	{{ if .QueryScientificName }} scientific_name LIKE ? AND {{ end }}
+	{{ if .QueryGenera }} genera = ? AND {{ end }}
+	{{ if .QueryFamily }} family = ? AND {{ end }}
 	{{ if .QueryPhyla }} polyphylactic_group = '{{ .QueryPhyla }}' AND {{ end }}
 	{{ if gt (len .QueryCounties) 0 }} county_name IN ({{ range .QueryCounties }} '{{ . }}',{{ end }}''){{ end }}

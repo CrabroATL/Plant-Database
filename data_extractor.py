@@ -47,12 +47,15 @@ def ocr_image(quadrant, text_crop_species, text_crop_bools, x_transform_tuple, y
     
     np_species_crop = np.asarray(species_crop)
     np_bool_crop = np.asarray(bool_crop)
+    ocr_start = time.time()
     raw_bool = pytesseract.image_to_string(np_bool_crop,config="--psm 6 digits")
     raw_text = pytesseract.image_to_string(np_species_crop)
+    ocr_end = time.time()
     lined_text = raw_text.splitlines()
     clean_text = [line for line in lined_text if line != "" and line != " "]
     print(clean_text)
-    return(clean_text, raw_bool)
+    ocr_time = (ocr_end - ocr_start)
+    return(clean_text, raw_bool, ocr_time)
 
 def set_bools(raw_bool):
     if "1" or "2" or "3" or "4" not in raw_bool:
@@ -98,17 +101,21 @@ def process_images(cur, path, phyla):
     # quadrants are numbered left to right, top to bottom from 0 - 5
     transform_x = 0
     transform_y = 0
+    loop_ocr_time = 0
     for quadrant in range(QUADRANT_COUNT):
+        start_image_time = time.time()
         image = imread(path, as_gray = True)
         img = PIL.Image.open(path)
-        
+        end_image_time = time.time()
+        image_time = end_image_time - start_image_time
         # extract text data based on quadrant
-        clean_text, raw_bool = ocr_image(quadrant, text_crop_species, text_crop_bools, x_transform_tuple, y_middle_transform_tuple, y_bottom_transform_tuple, img)
+        clean_text, raw_bool, ocr_time = ocr_image(quadrant, text_crop_species, text_crop_bools, x_transform_tuple, y_middle_transform_tuple, y_bottom_transform_tuple, img)
+        loop_ocr_time = loop_ocr_time + ocr_time
         if len(clean_text) == 0:
             break    
         
         native_bool, endemic_bool, special_concern_bool, introduced_bool, invasive_bool = set_bools(raw_bool)
-
+        db_start = time.time()
         cur.execute("SELECT phyla_id FROM phyla WHERE polyphylactic_group = %s", (phyla,))
         phyla_id = cur.fetchone()[0]
 
@@ -167,7 +174,9 @@ def process_images(cur, path, phyla):
                 county_id = cur.fetchone()
                 cur.execute("INSERT INTO county_occurance VALUES (%s, %s);", (species_id, county_id,))
                 continue
-    return
+        db_end = time.time()
+        db_time = (db_end - db_start)
+    return(loop_ocr_time, db_time, image_time)
                 
 def main():
     start = time.time()
@@ -177,14 +186,22 @@ def main():
     cur.execute("SET search_path TO ar_plants;")
 
     # gather county data    
+    total_ocr_time = 0
+    total_db_time = 0
+    total_image_time = 0
     for file in os.listdir('images/'):
         path = "images/" + file
         phyla_name = (file.rsplit("_", 1)[0]).replace("_", " ")
-        process_images(cur, path, phyla_name)
+        ocr_time, db_time, image_time = process_images(cur, path, phyla_name)
+        total_ocr_time = total_ocr_time + ocr_time
+        total_db_time = total_db_time + db_time
+        total_image_time = total_image_time + image_time
         # upload_to_database(data) "maybe I wont build this function"
     end = time.time()
     print(end-start)
-
+    print(total_ocr_time)
+    print(total_db_time)
+    print(total_image_time)
 
     # print(genera)
 

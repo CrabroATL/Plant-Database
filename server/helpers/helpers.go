@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/jackc/pgx/v5"
@@ -46,7 +48,6 @@ func QueryDb(r *http.Request) ([]Plant, error) {
 		QueryScientificName: r.FormValue("scientific name"),
 		QueryCounties:       r.Form["counties"],
 	}
-	fmt.Println(q.QueryCounties)
 	tmpl, err1 := template.ParseFiles("helpers/query.tmpl")
 	fmt.Println("check")
 	if err1 != nil {
@@ -73,7 +74,31 @@ func QueryDb(r *http.Request) ([]Plant, error) {
 		fmt.Println(test)
 	}
 	qString := qTest.String()
-	checkQuery, err := conn.Query(context.Background(), qString)
+	n := strings.Count(qString, "?")
+	for i := 1; i <= n; i++ {
+		i := strconv.Itoa(i)
+		qString = strings.Replace(qString, "?", ("$" + i), 1)
+	}
+	var argstr []any
+	var counter int
+	if q.QueryCommonName != "" {
+		argstr = append(argstr, q.QueryCommonName)
+		counter += 1
+	}
+	if q.QueryScientificName != "" {
+		argstr = append(argstr, q.QueryScientificName)
+		counter += 1
+	}
+	if q.QueryGenera != "" {
+		argstr = append(argstr, q.QueryGenera)
+		counter += 1
+	}
+	if q.QueryFamily != "" {
+		argstr = append(argstr, q.QueryFamily)
+		counter += 1
+	}
+	fmt.Println(qString)
+	checkQuery, err := conn.Query(context.Background(), qString, argstr...)
 	if err != nil {
 		fmt.Println(err)
 	}
