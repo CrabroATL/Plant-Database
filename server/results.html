@@ -1,6 +1,17 @@
 {{ define "body"}}
 <div>
     <h1>Results</h1>
-    <h2>{{ range .plants }} {{ . }} {{ end }}</h2>
+    <body>{{ range . }} 
+        Common Name: {{ .CommonName }} <br>
+        Scientific Name: {{ .ScientificName }} <br>
+        Genera: {{ .Genera }} <br>
+        Family: {{ .Family }} <br>
+        Counties: {{ .CountiesPresent }}<br>
+        Native? {{ .Native }}<br>
+        Endemic? {{ .Endemic }}<br>
+        Special Concern? {{ .Special }}<br>
+        Introduced? {{ .Introduced }}<br>
+        Invasive? {{ .Invasive  }}<br>
+        <br> {{ end }}</body>
 </div>
 {{ end }}

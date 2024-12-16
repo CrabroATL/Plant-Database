@@ -1,5 +1,6 @@
 {{define "body"}}
 <div>
+    <h1>TEST</h1>
     <form action="/search" method="get">
         <label for="phyla">Polyphylactic Group</label>
         <select name="phyla" id="phyla">
@@ -9,82 +10,128 @@
         <option value="angiosperm_dicots">Angiosperm Dicots</option>
         <option value="angiosperm_monocots">Angiosperm Monocots</option>
         </select>
-        <input placeholder="family" name="family">
-        <input placeholder="genera" name="genera">
-        <input placeholder="scientific name" name="scientific name">
-        <input placeholder="common name" name="common name">
+        <input placeholder="family" list="families" name="family">
+        <input placeholder="genera" list="generas" name="genera">
+        <input placeholder="scientific name" list="scientific names" name="scientific name">
+        <input placeholder="common name" list="common names" name="common name">
         <button type="submit">Submit</button>
-        <fieldset>
+        <fieldset class="county-fieldset">
             <legend>Select counties:</legend>
-            <input type="checkbox" id="ashley" name="counties" value="ashley">
-            <label for="ashley">ashley</label><br>
-            
-            <input type="checkbox" id="baxter" name="counties" value="baxter">
-            <label for="baxter">baxter</label><br>
-            
-            <input type="checkbox" id="bay" name="counties" value="bay">
-            <label for="bay">bay</label><br>
-            
-            <input type="checkbox" id="benton" name="counties" value="benton">
-            <label for="benton">benton</label><br>
-            
-            <input type="checkbox" id="boone" name="counties" value="boone">
-            <label for="boone">boone</label><br>
-            
-            <input type="checkbox" id="bradley" name="counties" value="bradley">
-            <label for="bradley">bradley</label><br>
-            
-            <input type="checkbox" id="calhoun" name="counties" value="calhoun">
-            <label for="calhoun">calhoun</label><br>
-            
-            <input type="checkbox" id="carroll" name="counties" value="carroll">
-            <label for="carroll">carroll</label><br>
-            
-            <input type="checkbox" id="chicot" name="counties" value="chicot">
-            <label for="chicot">chicot</label><br>
-            
-            <input type="checkbox" id="clark" name="counties" value="clark">
-            <label for="clark">clark</label><br>
-            
-            <input type="checkbox" id="clay" name="counties" value="clay">
-            <label for="clay">clay</label><br>
-            
-            <input type="checkbox" id="cleburne" name="counties" value="cleburne">
-            <label for="cleburne">cleburne</label><br>
-            
-            <input type="checkbox" id="cleveland" name="counties" value="cleveland">
-            <label for="cleveland">cleveland</label><br>
-            
-            <input type="checkbox" id="columbia" name="counties" value="columbia">
-            <label for="columbia">columbia</label><br>
-            
-            <input type="checkbox" id="conway" name="counties" value="conway">
-            <label for="conway">conway</label><br>
-            
-            <input type="checkbox" id="craighead" name="counties" value="craighead">
-            <label for="craighead">craighead</label><br>
-            
-            <input type="checkbox" id="crawford" name="counties" value="crawford">
-            <label for="crawford">crawford</label><br>
-            
-            <input type="checkbox" id="crittenden" name="counties" value="crittenden">
-            <label for="crittenden">crittenden</label><br>
-            
-            <input type="checkbox" id="cross" name="counties" value="cross">
-            <label for="cross">cross</label><br>
-            
-            <input type="checkbox" id="dallas" name="counties" value="dallas">
-            <label for="dallas">dallas</label><br>
-            
-            <input type="checkbox" id="desha" name="counties" value="desha">
-            <label for="desha">desha</label><br>
-            
-            <input type="checkbox" id="drew" name="counties" value="drew">
-            <label for="drew">drew</label><br>
-            
-            <input type="checkbox" id="faulkner" name="counties" value="faulkner">
-            <label for="faulkner">faulkner</label><br>
-            
+            <div class="wrapper">
+            <div>
+                <input type="checkbox" id="ashley" name="counties" value="ashley">
+                <label for="ashley">Ashley</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="baxter" name="counties" value="baxter">
+                <label for="baxter">Baxter</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="bay" name="counties" value="bay">
+                <label for="bay">Bay</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="benton" name="counties" value="benton">
+                <label for="benton">Benton</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="boone" name="counties" value="boone">
+                <label for="boone">Boone</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="bradley" name="counties" value="bradley">
+                <label for="bradley">Bradley</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="calhoun" name="counties" value="calhoun">
+                <label for="calhoun">Calhoun</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="carroll" name="counties" value="carroll">
+                <label for="carroll">Carroll</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="chicot" name="counties" value="chicot">
+                <label for="chicot">Chicot</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="clark" name="counties" value="clark">
+                <label for="clark">Clark</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="clay" name="counties" value="clay">
+                <label for="clay">Clay</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="cleburne" name="counties" value="cleburne">
+                <label for="cleburne">Cleburne</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="cleveland" name="counties" value="cleveland">
+                <label for="cleveland">Cleveland</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="columbia" name="counties" value="columbia">
+                <label for="columbia">Columbia</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="conway" name="counties" value="conway">
+                <label for="conway">Conway</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="craighead" name="counties" value="craighead">
+                <label for="craighead">Craighead</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="crawford" name="counties" value="crawford">
+                <label for="crawford">Crawford</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="crittenden" name="counties" value="crittenden">
+                <label for="crittenden">Crittenden</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="cross" name="counties" value="cross">
+                <label for="cross">Cross</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="dallas" name="counties" value="dallas">
+                <label for="dallas">Dallas</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="desha" name="counties" value="desha">
+                <label for="desha">Desha</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="drew" name="counties" value="drew">
+                <label for="drew">Drew</label><br>
+              </div>
+              
+              <div>
+                <input type="checkbox" id="faulkner" name="counties" value="faulkner">
+                <label for="faulkner">Faulkner</label><br>
+              </div>
             <input type="checkbox" id="franklin" name="counties" value="franklin">
             <label for="franklin">franklin</label><br>
             
@@ -240,7 +287,21 @@
             
             <input type="checkbox" id="yell" name="counties" value="yell">
             <label for="yell">yell</label><br>
+            </div>
         </fieldset>
+        <datalist id="families">
+            {{ range.family }}<option value="{{ . }}"> {{ end }}
+        </datalist>
+        <datalist id="generas">
+            {{ range.genera }}<option value="{{ . }}"> {{ end }}
+        </datalist>
+        <datalist id="common names">
+            {{ range.commonName }}<option value="{{ . }}"> {{ end }}
+        </datalist>
+        <datalist id="scientific names">
+            {{ range.scientificName }}<option value="{{ . }}"> {{ end }}
+        </datalist>
     </form>
 </div>
+<script src="script.js"></script>
 {{end}}

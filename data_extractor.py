@@ -113,7 +113,6 @@ def process_images(cur, path, phyla):
         loop_ocr_time = loop_ocr_time + ocr_time
         if len(clean_text) == 0:
             break    
-        
         native_bool, endemic_bool, special_concern_bool, introduced_bool, invasive_bool = set_bools(raw_bool)
         db_start = time.time()
         cur.execute("SELECT phyla_id FROM phyla WHERE polyphylactic_group = %s", (phyla,))
@@ -130,6 +129,11 @@ def process_images(cur, path, phyla):
             species = "".join(clean_text[1:-1])
             common = clean_text[-1]
 
+        #lowercase data
+        family = family.lower()
+        genera = genera.lower()
+        species = species.lower()
+        common = common.lower()
         # Avoid duplicate insertions into database
         cur.execute("SELECT family_id FROM family WHERE family = %s", (family,))
         family_id_test = cur.fetchone()
