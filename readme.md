@@ -54,6 +54,7 @@ Last, run main.go to host a local server for the webapp. Then search for the pla
 ### Unit Tests
 
 Using quicktest.py known locations of counties in a selected image can be verfied to have been read correctly. 
+Programs generacheck.py and family_check.py were used to find errors in the OCR that needed to be fixed with the edgecase cleaner.
 
 ### Integration Tests
 
