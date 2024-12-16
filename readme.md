@@ -38,29 +38,30 @@ First create a docker container. Ensure your container information matches the d
 dbname=postgres user=postgres password=password host=0.0.0.0 port=30420
 
 #### Step 2: Build Database
-Next run migrations.py to build the pgsql database.
+Next, run migrations.py to build the pgsql database.
 
 #### Step 3: Populate Database
-Next run data_extractor.py to populate database. This process current takes between 640s and 660s 
+Next, run data_extractor.py to populate database. This process current takes between 640s and 660s 
 
 #### Step 4: Clean Data
-Next run edgecase_cleaner.py to clean all currently known ocr errors.
+Next, run edgecase_cleaner.py to clean all currently known ocr errors.
 
 #### Step 5: Run WebApp
-Last run main.go to host a local server for the webapp. Then search for the plants you've always wanted to know about!
+Last, run main.go to host a local server for the webapp. Then search for the plants you've always wanted to know about!
 
 ## Testing
 
 ### Unit Tests
-Describe how unit tests are executed.
+
+Using quicktest.py known locations of counties in a selected image can be verfied to have been read correctly. 
 
 ### Integration Tests
 
-Describe how integration tests are executed.
+No integration tests were run.
 
 ## Deployment
 
-Explain how the app or library is deployed or executed either in a local or server context.
+The app is run on local port 3000 and accessed through a web browser. Future versions may be hosted on a webserver.
 
 ## Technology Stack
 
@@ -68,4 +69,10 @@ Explain how the app or library is deployed or executed either in a local or serv
 2. Python3
 3. GoLang
 4. Docker
-5. 
+
+## Future Improvements
+
+1. Creating a script to run all components to build and clean the database.
+2. Updated HTML & CSS for better UI and UX.
+3. Javascript to allow data from search fields to interact and determin which autocomplete options are available.
+4. Secondary python program to pull additional Taxa data from source material.
