@@ -1,0 +1,61 @@
+h1 { color: #000000;
+    font-size: xx-large;
+    text-align: center;
+    position: static;
+    z-index: 1;
+}
+
+legend {
+    border: #ffffff;
+}
+
+fieldset {
+    border: 2px solid green;
+    padding: 10px;
+    margin: 20px 0;
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+}
+
+checkbox ul{
+    display: inline-block;
+    vertical-align: top;
+}
+
+.banner {
+    width: 100%;
+    opacity: 50%;
+    float: center;
+    position: absolute;
+    z-index: -1;
+}
+.county-fieldset {
+    position: relative;
+    clear: left;
+}
+
+.index-body {
+    margin-top: 13%;
+    position: relative;
+}
+
+.result {
+    padding-top: 100px;
+    margin-left: 20px;
+    border: #5e0000;
+}
+
+.grid {
+    grid-template-columns: 33% 33% 33%;
+}
+
+.result text{
+    padding-top: 100px;
+    position: relative;
+    font-size: xx-large;
+    max-width: 50%;
+    padding-left: 20px;
+    grid-template-columns: 33% 33% 33%;
+}
+.results header {
+    padding-top: 100px;
+}

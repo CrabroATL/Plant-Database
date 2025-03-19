@@ -1,0 +1,11 @@
+    SELECT DISTINCT polyphylactic_group, family, genera, common_name, scientific_name FROM species 
+    JOIN genera ON species.genera_id = genera.genera_id
+    JOIN family ON species.family_id = family.family_id
+    JOIN phyla ON species.phyla_id = phyla.phyla_id
+    WHERE 1=1
+    {{ if .Phyla }} AND polyphylactic_group = ? {{ end }}
+    {{ if .Family }} AND family = ? {{ end }}
+    {{ if .Genera }} AND genera = ? {{ end }}
+    {{ if .ScientificName }} AND scientific_name LIKE ? {{ end }}
+    {{ if .CommonName }} AND common_name SIMILAR TO ? {{ end }}
+    

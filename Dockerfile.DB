@@ -1,0 +1,6 @@
+FROM postgres
+ENV POSTGRES_PASSWORD=docker
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_DB=plants
+RUN mkdir -p /docker-entrypoint-initdb.d/
+COPY plants.sql /docker-entrypoint-initdb.d/

@@ -1,0 +1,10 @@
+FROM golang:1.21.2 AS build
+WORKDIR /src
+COPY go.mod /src
+
+RUN go mod download
+
+RUN go build -o /src/server src/server/main.go
+FROM scratch
+COPY --from=build /src /src
+CMD ["/src"]
