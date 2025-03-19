@@ -1,17 +1,36 @@
 {{ define "body"}}
-<div>
-    <h1>Results</h1>
-    <body>{{ range . }} 
-        Common Name: {{ .CommonName }} <br>
-        Scientific Name: {{ .ScientificName }} <br>
-        Genera: {{ .Genera }} <br>
-        Family: {{ .Family }} <br>
-        Counties: {{ .CountiesPresent }}<br>
-        Native? {{ .Native }}<br>
-        Endemic? {{ .Endemic }}<br>
-        Special Concern? {{ .Special }}<br>
-        Introduced? {{ .Introduced }}<br>
-        Invasive? {{ .Invasive  }}<br>
-        <br> {{ end }}</body>
+<link rel="stylesheet" href="/style/styles.css">
+<div style="height: 130px;"></div> 
+<div class="results">
+    <h1 class="results header">Results</h1>
+    <table style = "border: 1px solid black;">
+        <tr>
+            <th style = "border: 1px solid black;">Common Name</th>
+            <th style = "border: 1px solid black;">Scientific Name</th>
+            <th style = "border: 1px solid black;">Genera</th>
+            <th style = "border: 1px solid black;">Family</th>
+            <th style = "border: 1px solid black;">Polyphylactic Group</th>
+            <th style = "border: 1px solid black;">Status</th>
+            <th style = "border: 1px solid black;">Counties Present</th>
+        </tr>
+        {{ range . }}
+            <tr>
+                <td style = "border: 1px solid black;">{{ .CommonName }}</td>
+                <td style = "border: 1px solid black;">{{ .ScientificName }}</td>
+                <td style = "border: 1px solid black;">{{ .Genera }}</td>
+                <td style = "border: 1px solid black;">{{ .Family }}</td>
+                <td style = "border: 1px solid black;">{{ .Phyla }}</td>
+                <td style = "border: 1px solid black;">{{ if .Native }} Native {{ end }}
+                    {{ if .Endemic }} Endemic {{ end }}
+                    {{ if .Special }} Special Concern {{ end }}
+                    {{ if .Introduced }} Introduced {{ end }}
+                    {{ if .Invasive }} Invasive {{ end }}
+                    </td>
+                <td style = "border: 1px solid black;"> Counties:  {{ range .CountiesPresent }} {{ . }}, {{ end }} </td>
+                
+                
+            </tr>
+        {{ end}}
+    </table>
 </div>
 {{ end }}

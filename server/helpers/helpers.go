@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -37,91 +38,113 @@ type Query struct {
 	QueryCounties       []string
 }
 
-func Autocomplete(r *http.Request) map[string][]string {
-	conn, err := pgxpool.New(context.Background(), "postgres://postgres:password@localhost:30420/postgres")
+type AutocompleteData struct {
+	Phyla          string
+	Family         string
+	Genera         string
+	CommonName     string
+	ScientificName string
+}
+
+type AutocompleteReturn struct {
+	Phyla           []string `json:"phyla"`
+	Family          []string `json:"family"`
+	Genera          []string `json:"genera"`
+	Common_Name     []string `json:"commonName"`
+	Scientific_Name []string `json:"scientificName"`
+}
+
+// map[string][]string (use this as the return value later)
+func Autocomplete(r *http.Request, data AutocompleteData) (AutocompleteReturn, error) {
+	conn, err := pgxpool.New(context.Background(), "postgres://postgres:docker@localhost:30420/plants")
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
 	defer conn.Close()
-	test, err := conn.Exec(context.Background(), "SET search_path TO ar_plants")
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		fmt.Println(test)
+
+	cleanData := AutocompleteData{
+		Phyla:          strings.ToLower(data.Phyla),
+		Family:         strings.ToLower(data.Family),
+		Genera:         strings.ToLower(data.Genera),
+		CommonName:     strings.ToLower(data.CommonName),
+		ScientificName: strings.ToLower(data.ScientificName),
 	}
 
-	familyAC, err := conn.Query(context.Background(), "SELECT family FROM family")
-	if err != nil {
-		log.Fatal(err)
+	tmpl, err1 := template.ParseFiles("helpers/autocorrect_view_template.tmpl")
+	if err1 != nil {
+		fmt.Println("parse file error:", err1)
 	}
-	generaAC, err := conn.Query(context.Background(), "SELECT genera FROM ar_plants.genera")
-	if err != nil {
-		log.Fatal(err)
-	}
-	commonAC, err := conn.Query(context.Background(), "SELECT common_name FROM ar_plants.species")
-	if err != nil {
-		log.Fatal(err)
-	}
-	scienceAC, err := conn.Query(context.Background(), "SELECT scientific_name FROM ar_plants.species")
-	if err != nil {
-		log.Fatal(err)
-	}
-	familyData, err := pgx.CollectRows(familyAC, pgx.RowToMap)
-	if err != nil {
-		log.Fatal(err)
-	}
-	generaData, err := pgx.CollectRows(generaAC, pgx.RowToMap)
-	if err != nil {
-		log.Fatal(err)
-	}
-	commonNameData, err := pgx.CollectRows(commonAC, pgx.RowToMap)
-	if err != nil {
-		log.Fatal(err)
-	}
-	ScientificNameData, err := pgx.CollectRows(scienceAC, pgx.RowToMap)
-	if err != nil {
-		log.Fatal(err)
+	// if err := tmpl.Execute(os.Stdout, cleanData); err != nil {
+	// 	fmt.Println("execute error", err)
+	// }
+	var query bytes.Buffer
+	if err := tmpl.Execute(&query, cleanData); err != nil {
+		fmt.Println("execute error:", err)
 	}
 
-	var familyList []string
-	for _, m := range familyData {
-		for _, v := range m {
-			familyList = append(familyList, v.(string))
-		}
+	qString := query.String()
+	n := strings.Count(qString, "?")
+	for i := 1; i <= n; i++ {
+		i := strconv.Itoa(i)
+		qString = strings.Replace(qString, "?", ("$" + i), 1)
 	}
-	var generaList []string
-	for _, m := range generaData {
-		for _, v := range m {
-			generaList = append(generaList, v.(string))
-		}
+	var argstr []any
+	if cleanData.Phyla != "" {
+		argstr = append(argstr, cleanData.Phyla)
 	}
-	var commonNameList []string
-	for _, m := range commonNameData {
-		for _, v := range m {
-			commonNameList = append(commonNameList, v.(string))
-		}
+	if cleanData.Family != "" {
+		argstr = append(argstr, cleanData.Family)
 	}
-	var scientificNameList []string
-	for _, m := range ScientificNameData {
-		for _, v := range m {
-			scientificNameList = append(scientificNameList, v.(string))
-		}
+	if cleanData.Genera != "" {
+		argstr = append(argstr, cleanData.Genera)
 	}
-	fullMap := map[string][]string{
-		"family":         familyList,
-		"genera":         generaList,
-		"commonName":     commonNameList,
-		"scientificName": scientificNameList,
+	if cleanData.CommonName != "" {
+		cleanData.CommonName = "%" + cleanData.CommonName + "%"
+		argstr = append(argstr, cleanData.CommonName)
+	}
+	if cleanData.ScientificName != "" {
+		cleanData.ScientificName = "%" + cleanData.ScientificName + "%"
+		argstr = append(argstr, cleanData.ScientificName)
 	}
 
-	return fullMap
+	fmt.Println(qString)
+
+	checkRows, err := conn.Query(context.Background(), qString, argstr...)
+	if err != nil {
+		fmt.Println("checkrows err:", err)
+	}
+
+	dataStructList, err := pgx.CollectRows(checkRows, pgx.RowToStructByPos[AutocompleteData])
+	if err != nil {
+		fmt.Println("Collect Rows Err:", err)
+	}
+
+	var returnAutocompleteData AutocompleteReturn
+	for _, stuff := range dataStructList {
+		if !slices.Contains(returnAutocompleteData.Phyla, stuff.Phyla) {
+			returnAutocompleteData.Phyla = append(returnAutocompleteData.Phyla, stuff.Phyla)
+		}
+		if !slices.Contains(returnAutocompleteData.Family, stuff.Family) {
+			returnAutocompleteData.Family = append(returnAutocompleteData.Family, stuff.Family)
+		}
+		if !slices.Contains(returnAutocompleteData.Genera, stuff.Genera) {
+			returnAutocompleteData.Genera = append(returnAutocompleteData.Genera, stuff.Genera)
+		}
+		if !slices.Contains(returnAutocompleteData.Common_Name, stuff.CommonName) {
+			returnAutocompleteData.Common_Name = append(returnAutocompleteData.Common_Name, stuff.CommonName)
+		}
+		if !slices.Contains(returnAutocompleteData.Scientific_Name, stuff.ScientificName) {
+			returnAutocompleteData.Scientific_Name = append(returnAutocompleteData.Scientific_Name, stuff.ScientificName)
+		}
+	}
+	return returnAutocompleteData, nil
 }
 
 func QueryDb(r *http.Request) ([]Plant, error) {
 
 	r.ParseForm()
 	q := Query{
-		QueryPhyla:          r.FormValue("phyla"),
+		QueryPhyla:          strings.ToLower(r.FormValue("phyla")),
 		QueryFamily:         strings.ToLower(r.FormValue("family")),
 		QueryGenera:         strings.ToLower(r.FormValue("genera")),
 		QueryCommonName:     strings.ToLower(r.FormValue("common name")),
@@ -129,7 +152,6 @@ func QueryDb(r *http.Request) ([]Plant, error) {
 		QueryCounties:       r.Form["counties"],
 	}
 	tmpl, err1 := template.ParseFiles("helpers/query.tmpl")
-	fmt.Println("check")
 	if err1 != nil {
 		return nil, err1
 	}
@@ -140,19 +162,19 @@ func QueryDb(r *http.Request) ([]Plant, error) {
 	if err := tmpl.Execute(&qTest, q); err != nil {
 		return nil, err
 	}
-	conn, err := pgxpool.New(context.Background(), "postgres://postgres:password@localhost:30420/postgres")
-	fmt.Println(err)
+	conn, err := pgxpool.New(context.Background(), "postgres://postgres:docker@localhost:30420/plants")
+	fmt.Println("conn error:", err)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
 	defer conn.Close()
 
-	test, err := conn.Exec(context.Background(), "SET search_path TO ar_plants")
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		fmt.Println(test)
-	}
+	// test, err := conn.Exec(context.Background(), "SET search_path TO ar_plants")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// } else {
+	// 	fmt.Println(test)
+	// }
 	qString := qTest.String()
 	n := strings.Count(qString, "?")
 	for i := 1; i <= n; i++ {
@@ -161,9 +183,11 @@ func QueryDb(r *http.Request) ([]Plant, error) {
 	}
 	var argstr []any
 	if q.QueryCommonName != "" {
+		q.QueryCommonName = "%" + q.QueryCommonName + "%"
 		argstr = append(argstr, q.QueryCommonName)
 	}
 	if q.QueryScientificName != "" {
+		q.QueryScientificName = "%" + q.QueryScientificName + "%"
 		argstr = append(argstr, q.QueryScientificName)
 	}
 	if q.QueryGenera != "" {
@@ -172,17 +196,21 @@ func QueryDb(r *http.Request) ([]Plant, error) {
 	if q.QueryFamily != "" {
 		argstr = append(argstr, q.QueryFamily)
 	}
-	fmt.Println(qString)
 	checkRows, err := conn.Query(context.Background(), qString, argstr...)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Query error:", err)
 	}
-	fmt.Println(checkRows)
 
 	plants, err := pgx.CollectRows(checkRows, pgx.RowToStructByPos[Plant])
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("collectrows error:", err)
 	}
+
+	// add counties query
+	// countiesTemplate, err := template.ParseFiles("helpers/counties_template.tmpl")
+	// if err != nil {
+	// 	fmt.Println("county template error:", err)
+	// }
 
 	fmt.Println("pre return check")
 	return plants, err1

@@ -36,17 +36,13 @@ def clean_species(cur):
     cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'shepherd’ s-purse', 'shepherd’s-purse') WHERE common_name LIKE 'shepherd’ s-purse';")
     return
 
-
-
-
 def main():
     
-    conn = psy.connect('dbname=postgres user=postgres password=password host=0.0.0.0 port=30420')
+    conn = psy.connect('dbname=plant-container user=postgres password=password host=0.0.0.0 port=30420')
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute("SET search_path TO ar_plants;")
     
-
     clean_genera(cur)
 
     clean_family(cur)
