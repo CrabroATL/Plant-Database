@@ -43,7 +43,7 @@ def ocr_image(quadrant, text_crop_species, text_crop_bools, x_transform_tuple, y
         species_crop = img.crop(tuple(np.add((tuple(np.add(text_crop_species, y_bottom_transform_tuple))), x_transform_tuple)))
         bool_crop = img.crop(tuple(np.add((tuple(np.add(text_crop_bools, y_bottom_transform_tuple))), x_transform_tuple)))
     else:
-        raise Exception("no quadrant error")
+        raise Exception("error: no quadrant")
     
     np_species_crop = np.asarray(species_crop)
     np_bool_crop = np.asarray(bool_crop)
@@ -92,8 +92,6 @@ def set_bools(raw_bool):
 def process_images(cur, path, phyla):
     
     # y is before x when indexing into the image
-    # TODO put counties into JSON file and read the JSON file into "counties"
-    # maybe TODO create county class
     
     with open("countiesxy.json", "r") as file:
         counties = json.load(file)
@@ -181,15 +179,56 @@ def process_images(cur, path, phyla):
         db_end = time.time()
         db_time = (db_end - db_start)
     return(loop_ocr_time, db_time, image_time)
-                
+
+def clean_family(cur):
+    cur.execute("UPDATE species SET family_id = (SELECT family_id FROM family WHERE family = 'valerianaceae') WHERE family_id = (SELECT family_id FROM family WHERE family = 'vvalerianaceae');")
+    cur.execute("DELETE FROM family WHERE family = 'vvalerianaceae';")
+    cur.execute("UPDATE species SET family_id = (SELECT family_id FROM family WHERE family = 'verbenaceae') WHERE family_id IN (SELECT family_id FROM family WHERE family LIKE '%verbenaceae');")
+    cur.execute("UPDATE genera SET family_id = (SELECT family_id FROM family WHERE family = 'verbenaceae') WHERE family_id IN (SELECT family_id FROM family WHERE family IN ('‘verbenaceae', 'vverbenaceae', '‘vverbenaceae'));")
+    cur.execute("DELETE FROM family WHERE family IN ('‘verbenaceae', 'vverbenaceae', '‘vverbenaceae');")
+    cur.execute("UPDATE family SET family = 'hemerocallidaceae' WHERE family = 'emerocallidaceae';")
+    cur.execute("UPDATE species SET family_id = (SELECT family_id FROM family WHERE family = 'menyanthaceae') WHERE family_id = (SELECT family_id FROM family WHERE family = 'enyanthaceae');")
+    cur.execute("UPDATE genera SET family_id = (SELECT family_id FROM family WHERE family = 'menyanthaceae') WHERE family_id = (SELECT family_id FROM family WHERE family = 'enyanthaceae');")
+    cur.execute("DELETE FROM family WHERE family = 'enyanthaceae';")
+    cur.execute("UPDATE species SET family_id = (SELECT family_id FROM family WHERE family = 'hamamelidaceae') WHERE family_id = (SELECT family_id FROM family WHERE family LIKE '');")
+    cur.execute("DELETE FROM family WHERE family LIKE '';")
+    return
+
+def clean_genera(cur):
+    cur.execute("UPDATE genera SET genera = 'ilex' WHERE genera = 'tlex';")
+    cur.execute("UPDATE genera SET genera = 'ionactis' WHERE genera = 'tonactis';")
+    cur.execute("UPDATE species SET genera_id = (SELECT genera_id FROM genera WHERE genera = 'iris') WHERE genera_id = (SELECT genera_id FROM genera WHERE genera = 'tris');")
+    cur.execute("DELETE FROM genera WHERE genera = 'tris';")
+    cur.execute("UPDATE genera SET genera = 'buchloë' WHERE genera = 'buchloë';")
+    cur.execute("UPDATE species SET genera_id = (SELECT genera_id FROM genera WHERE genera = 'symphyotrichum') WHERE genera_id = (SELECT genera_id FROM genera WHERE genera = 'symphy');")
+    cur.execute("DELETE FROM genera WHERE genera = 'symphy';")
+    cur.execute("UPDATE genera SET genera = 'iodanthus' WHERE genera = 'todanthus';")
+    cur.execute("UPDATE species SET genera_id = (SELECT genera_id FROM genera WHERE genera = 'hamamelis') WHERE genera_id = (SELECT genera_id FROM genera WHERE genera LIKE 'hamamelidaceae%');")
+    cur.execute("DELETE FROM genera WHERE genera LIKE 'hamamelidaceae%';")
+    cur.execute("UPDATE species SET genera_id = (SELECT genera_id FROM genera WHERE genera = 'ulmus') WHERE genera_id = (SELECT genera_id FROM genera WHERE genera = 'ulnus');")
+    cur.execute("DELETE FROM genera WHERE genera = 'ulnus';")
+    return
+
+def clean_species(cur):
+    cur.execute("UPDATE species SET scientific_name = 'hamamelis vernalis sarg.' WHERE scientific_name = 'hamamelidaceaehamamelis vernalis sarg.';")
+    cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'fem', 'fern') WHERE common_name LIKE '%\\fem';")
+    cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'tice', 'rice') WHERE common_name LIKE 'tice';")
+    cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'shepherd’ s-purse', 'shepherd’s-purse') WHERE common_name LIKE 'shepherd’ s-purse';")
+    cur.execute("UPDATE species SET scientific_name = 'ilex ambigua (michx.) torr.' WHERE scientific_name = 'tlex ambigua (michx.) torr.';")
+    cur.execute("UPDATE species SET scientific_name = 'ilex cornuta lindl. & paxton' WHERE scientific_name = 'tlex cornuta lindl. & paxton';")
+    cur.execute("UPDATE species SET scientific_name = 'ilex decidua walter' WHERE scientific_name = 'tlex decidua walter';")
+    cur.execute("UPDATE species SET scientific_name = 'ilex longipes chapm. ex trel.' WHERE scientific_name = 'tlex longipes chapm. ex trel.';")
+    cur.execute("UPDATE species SET scientific_name = 'ilex opaca aitonvar. opaca' WHERE scientific_name = 'tlex opaca aitonvar. opaca';")
+    cur.execute("UPDATE species SET scientific_name = 'ilex verticillata (l.) a.gray' WHERE scientific_name = 'tlex verticillata (l.) a.gray';")
+    cur.execute("UPDATE species SET scientific_name = 'ilex vomitoria aiton' WHERE scientific_name = 'tlex vomitoria aiton';")
+    return
+
 def main():
     start = time.time()
-    conn = psy.connect('dbname=postgres user=postgres password=password host=0.0.0.0 port=30420')
+    conn = psy.connect('dbname=plants user=postgres password=docker host=0.0.0.0 port=30420')
     conn.autocommit = True
     cur = conn.cursor()
-    cur.execute("SET search_path TO ar_plants;")
 
-    # gather county data    
     total_ocr_time = 0
     total_db_time = 0
     total_image_time = 0
@@ -200,21 +239,14 @@ def main():
         total_ocr_time = total_ocr_time + ocr_time
         total_db_time = total_db_time + db_time
         total_image_time = total_image_time + image_time
-        # upload_to_database(data) "maybe I wont build this function"
     end = time.time()
-    print(end-start)
-    print(total_ocr_time)
-    print(total_db_time)
-    print(total_image_time)
-
-    # print(genera)
-
-    # use config="--psm 6 digits" for retrieving numbers
-    # print(pytesseract.image_to_string(q0, config="--psm 6 digits"))
-
-    # imshow(q1)
-    # plt.show()
-
+    clean_genera(cur)
+    clean_family(cur)
+    clean_species(cur)
+    print("total time:", end-start)
+    print("ocr time:", total_ocr_time)
+    print("db insertion time:", total_db_time)
+    print("image load time:", total_image_time)
     
 main()
 

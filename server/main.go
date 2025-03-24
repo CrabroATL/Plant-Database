@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -15,29 +16,51 @@ func searchResults(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Search results test")
 	for _, plant := range plants {
-		fmt.Printf("%+v\n", plant)
+		fmt.Printf("plant range check: %+v\n", plant)
 	}
-	fmt.Println("post struct check")
+	// plantsJson, err := json.Marshal(plants)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	fmt.Printf("plants struct check: %+v", plants)
 	tmpl := make(map[string]*template.Template)
 	tmpl["results.html"] = template.Must(template.ParseFiles("results.html", "layout.html"))
 	tmpl["results.html"].ExecuteTemplate(w, "layout", plants)
 }
 
 func mainPage(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("in main page")
-	tmpl := make(map[string]*template.Template)
-	fullMap := helpers.Autocomplete(r)
-	tmpl["index.html"] = template.Must(template.ParseFiles("index.html", "layout.html"))
-	tmpl["index.html"].ExecuteTemplate(w, "layout", fullMap)
+	switch r.Method {
+	case "GET":
+		tmpl := make(map[string]*template.Template)
+		tmpl["index.html"] = template.Must(template.ParseFiles("index.html", "layout.html"))
+		tmpl["index.html"].ExecuteTemplate(w, "layout", nil)
+	case "POST":
+		fmt.Println("POST running")
+		var test helpers.AutocompleteData
+		json.NewDecoder(r.Body).Decode(&test)
+
+		returnStruct, err := helpers.Autocomplete(r, test)
+		if err != nil {
+			fmt.Print("aurocompelte return error:", err)
+		}
+		returnJSON, err := json.Marshal(returnStruct)
+		if err != nil {
+			fmt.Println("Json Marshal error:", err)
+		}
+		w.Write(returnJSON)
+	}
+
 }
 
 func main() {
 
+	fs := http.FileServer(http.Dir("style"))
+	http.Handle("/style/", http.StripPrefix("/style", fs))
 	http.HandleFunc("/", mainPage)
 	http.HandleFunc("/search", searchResults)
 	fmt.Println("Starting server .......")
-	err := http.ListenAndServe(":3000", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		fmt.Print(err)
+		fmt.Print("Listen and serve error:", err)
 	}
 }

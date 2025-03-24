@@ -1,31 +1,25 @@
 
-DROP SCHEMA AR_PLANTS CASCADE;
-
-CREATE SCHEMA ar_plants;
-
-SET search_path TO ar_plants;
-
-CREATE TABLE ar_plants.phyla
+CREATE TABLE phyla
 (
     phyla_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     polyphylactic_group VARCHAR(50) NOT NULL
 );
 
-INSERT INTO ar_plants.phyla (polyphylactic_group) VALUES
+INSERT INTO phyla (polyphylactic_group) VALUES
     ('pteridophytes'),
     ('gymnosperms'), 
     ('angiosperm dicots'), 
     ('angiosperm monocots')
 ;
 
-CREATE TABLE ar_plants.family
+CREATE TABLE family
 (
     family_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     family VARCHAR(50) NOT NULL,
     phyla_id INTEGER REFERENCES phyla (phyla_id)
 );
 
-CREATE TABLE ar_plants.genera
+CREATE TABLE genera
 (
     genera_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     genera VARCHAR(50) NOT NULL,
@@ -33,7 +27,7 @@ CREATE TABLE ar_plants.genera
     phyla_id INTEGER REFERENCES phyla (phyla_id)
 );
 
-CREATE TABLE ar_plants.species
+CREATE TABLE species
 (
     species_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     scientific_name VARCHAR NOT NULL,
@@ -48,19 +42,19 @@ CREATE TABLE ar_plants.species
     phyla_id INTEGER REFERENCES phyla (phyla_id)
 );
 
-CREATE TABLE ar_plants.counties
+CREATE TABLE counties
 (
     county_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
     county_name VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE ar_plants.county_occurance
+CREATE TABLE county_occurance
 (
     species_id INTEGER REFERENCES species (species_id),
     county_id INTEGER REFERENCES counties (county_id)
 );
 
-INSERT INTO ar_plants.counties (county_name) VALUES
+INSERT INTO counties (county_name) VALUES
     ('arkansas'),
     ('ashley'),
     ('baxter'),

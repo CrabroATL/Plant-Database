@@ -1,0 +1,3 @@
+SELECT county_name FROM county_occurance
+JOIN species ON species.county_id county_occurance.county_id
+WHERE scientific_name = ?
