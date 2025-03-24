@@ -38,7 +38,7 @@ type Query struct {
 }
 
 func Autocomplete(r *http.Request) map[string][]string {
-	conn, err := pgxpool.New(context.Background(), "postgres://postgres:password@localhost:30420/postgres")
+	conn, err := pgxpool.New(context.Background(), "postgres://postgres:password@localhost:30420/plants")
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
