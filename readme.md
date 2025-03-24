@@ -71,9 +71,7 @@ The app is run on local port 3000 and accessed through a web browser. Future ver
 3. GoLang
 4. Docker
 
-## Future Improvements
+## Improvements in development
 
-1. Creating a script to run all components to build and clean the database.
-2. Updated HTML & CSS for better UI and UX.
 3. Javascript to allow data from search fields to interact and determin which autocomplete options are available.
 4. Secondary python program to pull additional Taxa data from source material.
