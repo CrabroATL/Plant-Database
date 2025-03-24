@@ -59,7 +59,7 @@ func main() {
 	http.HandleFunc("/", mainPage)
 	http.HandleFunc("/search", searchResults)
 	fmt.Println("Starting server .......")
-	err := http.ListenAndServe(":3000", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Print("Listen and serve error:", err)
 	}

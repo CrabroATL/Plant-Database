@@ -71,6 +71,6 @@ The app is run on local port 3000 and accessed through a web browser. Future ver
 
 ## Future Improvements
 
-1. Updated HTML & CSS for better UI and UX.
+1. Containerize Server
 2. Harden database and query logic to prevent SQL injection attacks.
 3. Secondary python program to pull additional Taxa data from source material.
