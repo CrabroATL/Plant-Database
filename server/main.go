@@ -24,7 +24,7 @@ func searchResults(w http.ResponseWriter, r *http.Request) {
 	// }
 	fmt.Printf("plants struct check: %+v", plants)
 	tmpl := make(map[string]*template.Template)
-	tmpl["results.html"] = template.Must(template.ParseFiles("results.html", "layout.html"))
+	tmpl["results.html"] = template.Must(template.ParseFiles("static/results.html", "static/layout.html"))
 	tmpl["results.html"].ExecuteTemplate(w, "layout", plants)
 }
 
@@ -32,7 +32,7 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		tmpl := make(map[string]*template.Template)
-		tmpl["index.html"] = template.Must(template.ParseFiles("index.html", "layout.html"))
+		tmpl["index.html"] = template.Must(template.ParseFiles("static/index.html", "static/layout.html"))
 		tmpl["index.html"].ExecuteTemplate(w, "layout", nil)
 	case "POST":
 		fmt.Println("POST running")
@@ -54,8 +54,8 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	fs := http.FileServer(http.Dir("style"))
-	http.Handle("/style/", http.StripPrefix("/style", fs))
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static", fs))
 	http.HandleFunc("/", mainPage)
 	http.HandleFunc("/search", searchResults)
 	fmt.Println("Starting server .......")

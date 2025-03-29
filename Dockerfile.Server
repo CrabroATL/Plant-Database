@@ -1,11 +1,12 @@
 FROM golang:1.21.2 AS build
 WORKDIR /src
-COPY go.mod /src
-
+COPY go.mod go.sum ./
+COPY ./server ./server
 RUN go mod download
+RUN CGO_ENABLED=0 go build -o plant_server /src/server/main.go
 
-RUN go build -o /src/server src/server/main.go
-FROM scratch
-COPY --from=build /src /src
+FROM alpine:latest
+COPY --from=build /src/plant_server /plant_server
+COPY --from=build /src/server/static /static
 EXPOSE 8080
-CMD ["/src"]
+CMD ["/plant_server"]
