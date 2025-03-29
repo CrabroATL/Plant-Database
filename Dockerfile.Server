@@ -8,5 +8,6 @@ RUN CGO_ENABLED=0 go build -o plant_server /src/server/main.go
 FROM alpine:latest
 COPY --from=build /src/plant_server /plant_server
 COPY --from=build /src/server/static /static
+COPY --from=build /src/server/helpers /helpers
 EXPOSE 8080
 CMD ["/plant_server"]
