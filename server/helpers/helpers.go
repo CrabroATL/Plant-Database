@@ -56,7 +56,7 @@ type AutocompleteReturn struct {
 
 // map[string][]string (use this as the return value later)
 func Autocomplete(r *http.Request, data AutocompleteData) (AutocompleteReturn, error) {
-	conn, err := pgxpool.New(context.Background(), "postgres://postgres:docker@localhost:30420/plants")
+	conn, err := pgxpool.New(context.Background(), "postgres://postgres:docker@bridge/plants")
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
@@ -162,7 +162,7 @@ func QueryDb(r *http.Request) ([]Plant, error) {
 	if err := tmpl.Execute(&qTest, q); err != nil {
 		return nil, err
 	}
-	conn, err := pgxpool.New(context.Background(), "postgres://postgres:docker@localhost:30420/plants")
+	conn, err := pgxpool.New(context.Background(), "postgres://postgres:docker@bridge/plants")
 	fmt.Println("conn error:", err)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)

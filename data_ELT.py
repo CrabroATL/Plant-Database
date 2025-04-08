@@ -212,7 +212,9 @@ def clean_genera(cur):
 def clean_species(cur):
     cur.execute("UPDATE species SET scientific_name = 'hamamelis vernalis sarg.' WHERE scientific_name = 'hamamelidaceaehamamelis vernalis sarg.';")
     cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'fem', 'fern') WHERE common_name LIKE '%\\fem';")
+    cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'fem', 'fern') WHERE common_name LIKE '%\\fem%';")
     cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'tice', 'rice') WHERE common_name LIKE 'tice';")
+    cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'tice', 'rice') WHERE common_name LIKE 'tice%';")
     cur.execute("UPDATE species SET common_name = REPLACE(common_name, 'shepherd’ s-purse', 'shepherd’s-purse') WHERE common_name LIKE 'shepherd’ s-purse';")
     cur.execute("UPDATE species SET scientific_name = 'ilex ambigua (michx.) torr.' WHERE scientific_name = 'tlex ambigua (michx.) torr.';")
     cur.execute("UPDATE species SET scientific_name = 'ilex cornuta lindl. & paxton' WHERE scientific_name = 'tlex cornuta lindl. & paxton';")
@@ -225,7 +227,7 @@ def clean_species(cur):
 
 def main():
     start = time.time()
-    conn = psy.connect('dbname=plants user=postgres password=docker host=0.0.0.0 port=30420')
+    conn = psy.connect('dbname=plants user=postgres password=docker host=0.0.0.0 port=8001')
     conn.autocommit = True
     cur = conn.cursor()
 
