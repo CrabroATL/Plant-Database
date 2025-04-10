@@ -38,13 +38,16 @@ Run the following commands in the command while inside the plant_database direct
 
     docker build -t plant-db .
 
-    docker run -d --name plant-container -p 30420:5432 plant-db
+    docker run -d --name plant-container -p 5432:5432 plant-db
 
 #### Step 2: Populate Database
 Next, run data_ELT.py to populate database. This process current takes between 640s and 660s 
 
-#### Step 3: Run WebApp
-Last, run main.go to host a local server for the webapp. Then search for the plants you've always wanted to know about!
+#### Step 3: Build and Run WebApp
+Last, execute the following commands
+
+docker build -t plant-server -f Dockerfile.Server ./
+docker run -p 8080:8080 plant-server
 
 ## Testing
 
@@ -53,13 +56,15 @@ Last, run main.go to host a local server for the webapp. Then search for the pla
 Using quicktest.py known locations of counties in a selected image can be verfied to have been read correctly. 
 Programs generacheck.py and family_check.py were used to find errors in the OCR that needed to be fixed with the edgecase cleaner.
 
+Future go tests will be implemented later.
+
 ### Integration Tests
 
 No integration tests were run.
 
 ## Deployment
 
-The app is run on local port 3000 and accessed through a web browser. Future versions may be hosted on a webserver.
+The app is run on local port 8080 and accessed through a web browser. Future versions target being hosted on a webserver.
 
 ## Technology Stack
 
@@ -71,7 +76,6 @@ The app is run on local port 3000 and accessed through a web browser. Future ver
 
 ## Improvements in development
 
-1. Containerize Server
-2. Repair broken autocorrect function
-3. Harden database and query logic to prevent SQL injection attacks.
-4. Secondary python program to pull additional Taxa data from source material.
+1. Harden database and query logic to prevent SQL injection attacks.
+2. Use Docker Compose to network containers
+3. Secondary python program to pull additional Taxa data from source material.

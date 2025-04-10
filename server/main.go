@@ -49,7 +49,6 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write(returnJSON)
 	}
-
 }
 
 func main() {
