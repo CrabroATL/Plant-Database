@@ -74,6 +74,10 @@ The app is run on local port 8080 and accessed through a web browser. Future ver
 4. GoLang
 5. Docker
 
+## Known and Possible Bugs
+
+1. Database connection string may break on some machines. This issue is being looked into
+
 ## Improvements in development
 
 1. Harden database and query logic to prevent SQL injection attacks.
