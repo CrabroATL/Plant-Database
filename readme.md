@@ -36,9 +36,8 @@ Enumerated prerequisites.
 #### Step 1: Build Docker Container & Database
 Run the following commands in the command while inside the plant_database directory
 
-    docker build -t plant-db .
-
-    docker run -d --name plant-container -p 5432:5432 plant-db
+    docker build -t plant-db -f Dockerfile.DB .
+    docker run -d -p 8001:5432 plant-db
 
 #### Step 2: Populate Database
 Next, run data_ELT.py to populate database. This process current takes between 640s and 660s 
