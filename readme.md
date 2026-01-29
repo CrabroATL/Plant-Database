@@ -1,7 +1,10 @@
 # Arkansas Vascular Plants Searchable Database
 
+## Disclaimer:
+This is a proof-of-skills project that I used to break into the world of engineering. In its current state, it requires significant refactoring to reflect my current skill set.
+
 ## Description
-This app takes the online pdf version of "Atlas of the Vascular Plants of Arkansas" and creates a searchable database based on location, taxonomic, and native status. As a native plant enthusiate, I regulary used the Atlas of Vascular Plants of Arkansas to select plants, searching for what plants were native to my county, or checking if a plant I was trying to purchase was native, and if it occured in my county was a tedious chore. This database sovles that issues and turns a 10-20 minute process into a 4-5 second process. There are also possible use cases in conservation work and botany research, allowing for quick location mapping based family and genus.  
+This app takes the online pdf version of "Atlas of the Vascular Plants of Arkansas" and creates a searchable database based on location, taxonomic, and native status. As a native plant enthusiate, I regulary used the Atlas of Vascular Plants of Arkansas to select plants, searching for what plants were native to my county, or checking if a plant I was trying to purchase was native, and if it occurred in my county was a tedious chore. This database sovles that issues and turns a 10-20 minute process into a 4-5 second process. There are also possible use cases in conservation work and botany research, allowing for quick location mapping based family and genus.  
 
 ## Components
 
